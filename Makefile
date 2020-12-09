@@ -1,13 +1,13 @@
 CC=g++
 CFLAGS=-g
 
-.PHONY all: hello
+.PHONY all: hello.o
 
 .PHONY clean:
-	rm -f *.o hello
+	rm -f *.o 
 
 .PHONY debug: clean all
-	./hello
+	./hello.o
 
-hello: main.c 
+hello.o: main.c 
 	$(CC) $(CFLAGS) $(CPPFLAGS) $< -o $@
