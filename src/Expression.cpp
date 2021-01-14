@@ -1,48 +1,144 @@
 #include "Expression.h"
-#include <list>
 #include <vector>
 #include <iterator>
+#include <algorithm>
+#include <cmath>
 
-// Regex to get double:
-// \d+\.*\d*
-// Regex to get brackets and everything inside them:
-// \(*\d+\.*\d*\s*(\+|\-|\*|\/)\s*\d+\.*\d*\)*
-// '(' or ')'
-// Regex to get operators:
-// (\+|\-|\*|\/)
-// '+' | '-' | '*' | '/'
 void Expression::evaluate() const {
 
 }
 
-void Expression::plus() {
+void Expression::parseExpression() {
+    size_t priority = 0;
+    // FIXME Use map where Key is priority, Value - position in _operators
+    std::list<size_t> priorityList;
+
+    parseString();
+
+    // Set priorities for operations
+    for (auto op : _operators) {
+        switch(op) {
+            case '(':
+                priority += 1000;
+                break;
+            case ')':
+                // FIXME Here can be caught bug - extra open bracket
+                priority -= 1000;
+                break;
+            case '*':
+            case '/':
+                priorityList.push_back(priority + 100);
+                break;
+            case '+':
+            case '-':
+                priorityList.push_back(priority++);
+                break;
+            default:
+                // Can't even imagine how to get into this block
+                throw ExpressionException("Something gone wrong...");
+                break;
+        }
+    }
+
+    // TODO After priorities of operations are set we can finally evaluate our expression using BinaryOperation class
 
 }
 
-void Expression::minus() {
+void Expression::parseString() {
+    size_t i = 0;
+    double value;
+    std::istringstream iss;
+    std::string buf(_expression);
+    Operations lastOperation;
 
+    // Remove all spaces due to there uselessness
+    // FIXME this may cause bug - if 2 different numbers are separated only by space,
+    //  they will be merged into one BIG number
+    std::remove(buf.begin(), buf.end(), ' ');
+    iss.str(buf);
+
+    _numbers.push_back(NAN);
+    try {
+        for (i = 0; i < buf.size(); ++i) {
+            const char c = buf[i];
+            switch (c) {
+                case '+':
+                case '-':
+                case '/':
+                case '*':
+                    if (lastOperation == Operations::AddOperator) {
+                        throw ExpressionException("Given two operators in sequence.");
+                    } else if (lastOperation == Operations::OpenBracket) {
+                        throw ExpressionException("Operator goes after opening bracket.");
+                    }
+                    _operators.push_back(c);
+                    break;
+                case ')':
+                    if (lastOperation == Operations::OpenBracket) {
+                        throw ExpressionException("Closing bracket goes after opening bracket.");
+                    } else if (lastOperation == Operations::AddOperator) {
+                        throw ExpressionException("Closing bracket goes after operator.");
+                    }
+                    // Allows to map _numbers[i] to _operators[i]
+                    _numbers.push_back(NAN);
+                case '(':
+                    _operators.push_back(c);
+                    break;
+                default:
+                    if ((c >= '0' && c <= '9')) {
+                        if (lastOperation == Operations::AddNumber) {
+                            throw ExpressionException("Given number after another number.");
+                        } else if (lastOperation == Operations::CloseBracket) {
+                            throw ExpressionException("Given number after closing bracket.");
+                        }
+                        iss.seekg(i);
+                        iss >> value;
+                        i = iss.tellg();
+                        --i;
+                        _numbers.push_back(value);
+//                        this->addNumber(Number(value));
+                    } else {
+                        throw ExpressionException("Invalid character is given.");
+                    }
+                    break;
+            }
+        }
+    } catch (ExpressionException &e) {
+        std::string underscoreError(_expression.size(), ' ');
+        underscoreError.at(i) = '^';
+        std::cout << e.getMessage() << std::endl;
+        std::cout << _expression << std::endl;
+        std::cout << underscoreError << std::endl;
+    } catch (std::exception &e) {
+        std::cout << "Unexpected exception was caught parsing expression." << std::endl;
+    }
 }
-
-void Expression::divide() {
-
-}
-
-void Expression::multiply() {
-
-}
-
-void Expression::addOpenBracket() {
-
-}
-
-void Expression::addClosingBracket() {
-
-}
-
-void Expression::addNumber() {
-
-}
-
-Expression::~Expression() {
-
-}
+//
+//void Expression::addOperator(Operators op) {
+//    if (lastOperation == Operations::AddOperator) {
+//        throw ExpressionException("Given two operators in sequence.");
+//    }
+//}
+//
+//void Expression::addNumber(Number num) {
+//    if (lastOperation == Operations::AddNumber) {
+//        throw ExpressionException("Given two numbers in sequence.");
+//    }
+//}
+//
+//// TODO add virtual bracket if not end of expression, but `bracket_cntr == 0`
+//void Expression::addOpenBracket() {
+////    if (bracket_counter) {
+////    } else {
+////    }
+////    ++bracket_counter;
+//
+//}
+//
+//// TODO add flag for virtual bracket
+//void Expression::addClosingBracket() {
+//    if (lastOperation == Operations::OpenBracket) {
+//        throw ExpressionException("Closing bracket that was just opened.");
+//    }
+////    --bracket_counter;
+//}

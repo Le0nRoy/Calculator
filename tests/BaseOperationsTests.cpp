@@ -29,7 +29,7 @@ protected:
         PrepareTestData();
     }
 
-    std::list<TestData> testData;
+    std::vector<TestData> testData;
 };
 
 TEST_F(SUITE_NAME, SimplePlusTest) {
