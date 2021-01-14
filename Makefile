@@ -9,5 +9,5 @@ CFLAGS=-g
 .PHONY debug: clean all
 	./hello.o
 
-hello.o: src/main.cpp
+hello.o: main.cpp
 	$(CC) $(CFLAGS) $(CPPFLAGS) $< -o $@
