@@ -55,6 +55,9 @@ private:
         return _left->getNumber() * _right->getNumber();
     }
     retType div() const {
+        if (_right->getNumber() == 0) {
+            throw BinaryOperationException("Zero is given as second operand for division.");
+        }
         return _left->getNumber() / _right->getNumber();
     }
 };

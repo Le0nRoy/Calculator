@@ -14,64 +14,100 @@ struct TestData {
 
 struct SUITE_NAME : ::testing::Test {
 protected:
-    // TODO add multiple datasets
-    void SetUp() override {
-        data = {257, 845};
-
-        expression.addNumber(data.left);
-        expression.addNumber(data.right);
+    void PrepareTestData() {
+        testData = {
+                {257,       845},
+                {0,         1},
+                {1,         0},
+                {124.9878,  89},
+                {9090.9090, 8080.8080},
+                {0,         0}
+        };
     }
 
-    TestData data;
-    BinaryOperation expression;
+    void SetUp() override {
+        PrepareTestData();
+    }
+
+    std::list<TestData> testData;
 };
 
 TEST_F(SUITE_NAME, SimplePlusTest) {
-    expression.addOperator(Operators::PLUS);
-    double expected = data.left + data.right;
+    for (auto data : testData) {
+        BinaryOperation expression;
+        expression.addNumber(data.left);
+        expression.addNumber(data.right);
+        expression.addOperator(Operators::PLUS);
+        double expected = data.left + data.right;
 
-    double result = expression.evaluate();
+        double result = expression.evaluate();
 
-    ASSERT_EQ(result, expected);
+        EXPECT_EQ(result, expected);
+    }
 }
 
 TEST_F(SUITE_NAME, SimpleMinusTest) {
-    expression.addOperator(Operators::MINUS);
-    double expected = data.left - data.right;
+    for (auto data : testData) {
+        BinaryOperation expression;
+        expression.addNumber(data.left);
+        expression.addNumber(data.right);
+        expression.addOperator(Operators::MINUS);
+        double expected = data.left - data.right;
 
-    double result = expression.evaluate();
+        double result = expression.evaluate();
 
-    ASSERT_EQ(result, expected);
+        EXPECT_EQ(result, expected);
+    }
 }
 
 TEST_F(SUITE_NAME, SimpleMulTest) {
-    expression.addOperator(Operators::MUL);
-    double expected = data.left * data.right;
+    for (auto data : testData) {
+        BinaryOperation expression;
+        expression.addNumber(data.left);
+        expression.addNumber(data.right);
+        expression.addOperator(Operators::MUL);
+        double expected = data.left * data.right;
 
-    double result = expression.evaluate();
+        double result = expression.evaluate();
 
-    ASSERT_EQ(result, expected);
+        EXPECT_EQ(result, expected);
+    }
 }
 
 TEST_F(SUITE_NAME, SimpleDivTest) {
-    expression.addOperator(Operators::DIV);
-    double expected = data.left / data.right;
+    for (auto data : testData) {
+        BinaryOperation expression;
+        expression.addNumber(data.left);
+        expression.addNumber(data.right);
+        expression.addOperator(Operators::DIV);
+        if (data.right == 0) {
+            ASSERT_THROW(expression.evaluate(), BinaryOperationException);
+        } else {
+            double expected = data.left / data.right;
 
-    double result = expression.evaluate();
+            double result = expression.evaluate();
 
-    ASSERT_EQ(result, expected);
+            EXPECT_EQ(result, expected);
+        }
+    }
 }
 
 TEST_F(SUITE_NAME, NoOperatorExceptionTest) {
+    BinaryOperation expression;
     ASSERT_THROW(expression.evaluate(), BinaryOperationException);
 }
 
 TEST_F(SUITE_NAME, SecondOperatorExceptionTest) {
+    BinaryOperation expression;
     expression.addOperator(Operators::DIV);
     ASSERT_THROW(expression.addOperator(Operators::MUL), BinaryOperationException);
 }
 
 TEST_F(SUITE_NAME, ThirdNumberExceptionTest) {
+    BinaryOperation expression;
+    expression.addNumber(testData.cbegin()->left);
+    expression.addNumber(testData.cbegin()->right);
+    expression.addOperator(Operators::PLUS);
     ASSERT_THROW(expression.addNumber(12), BinaryOperationException);
 }
 
