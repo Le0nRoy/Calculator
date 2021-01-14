@@ -10,7 +10,6 @@
 #include <utility>
 
 enum class Operators {
-    NO_OP, // No operator - default value
     MUL,
     DIV,
     PLUS,
@@ -34,6 +33,7 @@ struct BinaryOperation {
 
     retType evaluate() const;
 
+    // TODO derieve class from interface Operation
     virtual ~BinaryOperation();
 
     void addNumber(Number num);
@@ -43,20 +43,19 @@ struct BinaryOperation {
 private:
     Number *_left = nullptr;
     Number *_right = nullptr;
-    Operators _operator = Operators::NO_OP;
-    std::function<retType(const Number &, const Number &)> _operation;
+    std::function<retType ()> _operation;
 
-    retType plus(const Number &left, const Number &right) {
-        return left.getNumber() + right.getNumber();
+    retType plus() const {
+        return _left->getNumber() + _right->getNumber();
     }
-    retType minus(const Number &left, const Number &right) {
-        return left.getNumber() - right.getNumber();
+    retType minus() const {
+        return _left->getNumber() - _right->getNumber();
     }
-    retType mul(const Number &left, const Number &right) {
-        return left.getNumber() * right.getNumber();
+    retType mul() const {
+        return _left->getNumber() * _right->getNumber();
     }
-    retType div(const Number &left, const Number &right) {
-        return left.getNumber() / right.getNumber();
+    retType div() const {
+        return _left->getNumber() / _right->getNumber();
     }
 };
 

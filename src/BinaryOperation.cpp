@@ -5,30 +5,13 @@
 #include "BinaryOperation.h"
 
 BinaryOperation::retType BinaryOperation::evaluate() const {
-    double res;
     if (_left == nullptr || _right == nullptr) {
         throw BinaryOperationException("Not enough numbers given.");
-//        throw std::exception();
+    } else if (_operation == nullptr) {
+        throw BinaryOperationException("No operator was given");
     }
-    switch(_operator) {
-        case Operators::PLUS:
-            res = _left->getNumber() + _right->getNumber();
-            break;
-        case Operators::MINUS:
-            res = _left->getNumber() - _right->getNumber();
-            break;
-        case Operators::MUL:
-            res = _left->getNumber() * _right->getNumber();
-            break;
-        case Operators::DIV:
-            res = _left->getNumber() / _right->getNumber();
-            break;
-        default:
-            throw BinaryOperationException("No operator was given");
-//            throw std::exception();
-            break;
-    }
-    return res;
+
+    return _operation();
 }
 
 void BinaryOperation::addNumber(Number num) {
@@ -38,17 +21,29 @@ void BinaryOperation::addNumber(Number num) {
         _right = new Number(num);
     } else {
         throw BinaryOperationException("Too much numbers");
-//        throw std::exception();
     }
 }
 
-// FIXME change type of _operator to pointer to operation function
 void BinaryOperation::addOperator(Operators op) {
-    if (_operator == Operators::NO_OP) {
-        _operator = op;
+    if (_operation == nullptr) {
+        switch(op) {
+            case Operators::PLUS:
+                _operation = std::bind(&BinaryOperation::plus, this);
+                break;
+            case Operators::MINUS:
+                _operation = std::bind(&BinaryOperation::minus, this);
+                break;
+            case Operators::MUL:
+                _operation = std::bind(&BinaryOperation::mul, this);
+                break;
+            case Operators::DIV:
+                _operation = std::bind(&BinaryOperation::div, this);
+                break;
+            default:
+                throw BinaryOperationException("No valid operator was given");
+        }
     } else {
         throw BinaryOperationException("More than 1 operator given");
-//        throw std::exception();
     }
 }
 

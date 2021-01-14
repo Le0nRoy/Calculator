@@ -92,4 +92,6 @@ TEST_F(SUITE_NAME, NotEnoughNumbersExceptionTest) {
     ASSERT_THROW(expr.evaluate(), BinaryOperationException);
     expr.addNumber(1);
     ASSERT_THROW(expr.evaluate(), BinaryOperationException);
+    expr.addNumber(1);
+    ASSERT_NO_THROW(expr.evaluate());
 }
