@@ -26,8 +26,7 @@ bool PriorityComparator::operator()(const size_t &a, const size_t &b) {
     } else if ((comp1 / 100) < (comp2 / 100)) {
         return false;
     }
-    if ((comp1 % 100) < (comp2 % 100)) return true;
-    return false;
+    return (comp1 % 100) < (comp2 % 100);
 }
 
 void Expression::evaluate() const {
@@ -36,10 +35,12 @@ void Expression::evaluate() const {
 
 void Expression::parseExpression() {
     size_t priority = 0;
-    // FIXME Use map where Key is priority, Value - position in _operators
+    size_t counter = 0;
+    // Key is priority, Value - position in _operators
+    // FIXME allocate it on heap
     std::map<size_t, size_t, PriorityComparator> priorities;
-    std::list<size_t> priorityList;
 
+    // TODO priorities setting may be done with string parsing so merge them
     parseString();
 
     // Set priorities for operations
@@ -47,24 +48,28 @@ void Expression::parseExpression() {
         switch (op) {
             case '(':
                 priority += 1000;
+                priorities[priority] = counter;
                 break;
             case ')':
                 // FIXME Here can be caught bug - extra open bracket
                 priority -= 1000;
+                priorities[priority] = counter;
                 break;
             case '*':
             case '/':
-                priorityList.push_back(priority + 100);
+                priorities[priority + 100] = counter;
                 break;
             case '+':
             case '-':
-                priorityList.push_back(priority++);
+                priorities[priority] = counter;
                 break;
             default:
                 // Can't even imagine how to get into this block
                 throw ExpressionException("Something gone wrong...");
                 break;
         }
+        ++priority;
+        ++counter;
     }
 
     // TODO After priorities of operations are set we can finally evaluate our expression using BinaryOperation class
@@ -85,6 +90,15 @@ void Expression::parseString() {
     iss.str(buf);
 
     _numbers.push_back(NAN);
+    // Parsing string to two separate arrays - _numbers and _operators with next relations:
+    // _numbers[i] is LEFT to _operators[i]
+    // _numbers[i+1] is RIGHT to _operators[i]
+    // if _operators[i] == '(' then _numbers[i] == NAN
+    // if _operators[i] == ')' then _numbers[i+1] == NAN
+    // if _numbers[i] == NAN it waits for result of operator that put it
+    // if _operator[i] == '+' or '-' or '/' or '*'
+    //  then _operator[i+1] and _operator[i-1] CAN'T be one of this operators
+    // if _operator[i] == '(' then _operator[i+1] CAN'T be '+' or '-' or '/' or '*' or ')'
     try {
         for (i = 0; i < buf.size(); ++i) {
             const char c = buf[i];
@@ -99,17 +113,29 @@ void Expression::parseString() {
                         throw ExpressionException("Operator goes after opening bracket.");
                     }
                     _operators.push_back(c);
+                    lastOperation = Operations::AddOperator;
                     break;
                 case ')':
+                    // FIXME NAN should be put BEFORE '(' and AFTER ')'
                     if (lastOperation == Operations::OpenBracket) {
                         throw ExpressionException("Closing bracket goes after opening bracket.");
                     } else if (lastOperation == Operations::AddOperator) {
                         throw ExpressionException("Closing bracket goes after operator.");
                     }
-                    // Allows to map _numbers[i] to _operators[i]
-                    _numbers.push_back(NAN);
-                case '(':
                     _operators.push_back(c);
+                    _numbers.push_back(NAN);
+                    lastOperation = Operations::CloseBracket;
+                    break;
+                case '(':
+                    // TODO Multiply may be added later
+                    if (lastOperation == Operations::AddNumber) {
+                        throw ExpressionException("Opening bracket after number (operator should be inserted explicitly).");
+                    } else if (lastOperation == Operations::CloseBracket) {
+                        throw ExpressionException("Opening bracket after closed bracket (operator should be inserted explicitly).");
+                    }
+                    _numbers.push_back(NAN);
+                    _operators.push_back(c);
+                    lastOperation = Operations::OpenBracket;
                     break;
                 default:
                     if ((c >= '0' && c <= '9')) {
@@ -123,7 +149,7 @@ void Expression::parseString() {
                         i = iss.tellg();
                         --i;
                         _numbers.push_back(value);
-//                        this->addNumber(Number(value));
+                        lastOperation = Operations::AddNumber;
                     } else {
                         throw ExpressionException("Invalid character is given.");
                     }
@@ -140,32 +166,3 @@ void Expression::parseString() {
         std::cout << "Unexpected exception was caught parsing expression." << std::endl;
     }
 }
-//
-//void Expression::addOperator(Operators op) {
-//    if (lastOperation == Operations::AddOperator) {
-//        throw ExpressionException("Given two operators in sequence.");
-//    }
-//}
-//
-//void Expression::addNumber(Number num) {
-//    if (lastOperation == Operations::AddNumber) {
-//        throw ExpressionException("Given two numbers in sequence.");
-//    }
-//}
-//
-//// TODO add virtual bracket if not end of expression, but `bracket_cntr == 0`
-//void Expression::addOpenBracket() {
-////    if (bracket_counter) {
-////    } else {
-////    }
-////    ++bracket_counter;
-//
-//}
-//
-//// TODO add flag for virtual bracket
-//void Expression::addClosingBracket() {
-//    if (lastOperation == Operations::OpenBracket) {
-//        throw ExpressionException("Closing bracket that was just opened.");
-//    }
-////    --bracket_counter;
-//}

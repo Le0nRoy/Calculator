@@ -48,18 +48,11 @@ private:
         AddOperator
     };
 
-//    size_t bracket_counter;
     // FIXME this can be too big to contain them in class object - refactor them to pointers
     std::string _expression;
     std::vector<double> _numbers;
     std::vector<char> _operators;
 
     void parseString();
-//
-//    void addOpenBracket();
-//    void addClosingBracket();
-//
-//    void addOperator(Operators op);
-//    void addNumber(Number num);
 
 };
