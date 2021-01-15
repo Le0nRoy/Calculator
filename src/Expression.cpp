@@ -3,6 +3,32 @@
 #include <iterator>
 #include <algorithm>
 #include <cmath>
+#include <map>
+#include <list>
+
+/// priority / 1000 - get bracket priority (the bigger number - the higher priority)
+/// if equals to zero - check other types of priority or equal values
+/// (priority % 1000) / 100 - get '*' or '/' priority (the bigger number - the higher priority)
+/// if equals to zero - check other types of priority or equal values
+/// (priority % 1000) % 100 - get '+' or '-' priority (! the less number - the higher priority)
+bool PriorityComparator::operator()(const size_t &a, const size_t &b) {
+    size_t comp1 = a;
+    size_t comp2 = b;
+    if ((comp1 / 1000) > (comp2 / 1000)) {
+        return true;
+    } else if ((comp1 / 1000) < (comp2 / 1000)) {
+        return false;
+    }
+    comp1 %= 1000;
+    comp2 %= 1000;
+    if ((comp1 / 100) > (comp2 / 100)) {
+        return true;
+    } else if ((comp1 / 100) < (comp2 / 100)) {
+        return false;
+    }
+    if ((comp1 % 100) < (comp2 % 100)) return true;
+    return false;
+}
 
 void Expression::evaluate() const {
 
@@ -11,13 +37,14 @@ void Expression::evaluate() const {
 void Expression::parseExpression() {
     size_t priority = 0;
     // FIXME Use map where Key is priority, Value - position in _operators
+    std::map<size_t, size_t, PriorityComparator> priorities;
     std::list<size_t> priorityList;
 
     parseString();
 
     // Set priorities for operations
     for (auto op : _operators) {
-        switch(op) {
+        switch (op) {
             case '(':
                 priority += 1000;
                 break;

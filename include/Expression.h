@@ -2,11 +2,15 @@
 
 #include <iostream>
 #include <sstream>
-#include <list>
+#include <vector>
 #include <utility>
 
 #include "BinaryOperation.h"
 #include "Number.h"
+
+struct PriorityComparator {
+    bool operator()(const size_t &a, const size_t &b);
+};
 
 struct ExpressionException : std::exception {
     explicit ExpressionException(std::string message) : message(std::move(message)) {}
@@ -32,7 +36,7 @@ struct Expression {
 
     void parseExpression();
 
-    double getResult();
+    double getResult() const {return 0;}
 
     ~Expression() = default;
 
