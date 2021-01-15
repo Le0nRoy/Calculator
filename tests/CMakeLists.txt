@@ -26,7 +26,7 @@ include_directories(${INCLUDE_DIRS})
 set(TEST_SRC
         BaseOperationsTests.cpp
         ExpressionTests.cpp
-        )
+        Test.h)
 
 add_executable(${TEST_EXECUTABLE_NAME}
         ${TEST_SRC}

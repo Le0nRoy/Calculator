@@ -2,15 +2,10 @@
 // Created by lap on 9/26/20.
 //
 
-#include "gtest/gtest.h"
+#include "Test.h"
 #include "include/Expression.h"
 
 #define SUITE_NAME ExpressionTests
-
-// both PPCAT_NX(s, 1) and PPCAT(s, 1) produce the identifier s1,
-// unless s is defined as a macro, in which case PPCAT(s, 1) produces <macro value of s>1.
-#define PPCAT_NX(A, B) A ## B
-#define PPCAT(A, B) PPCAT_NX(A, B)
 
 struct TestData {
     std::string exprString;

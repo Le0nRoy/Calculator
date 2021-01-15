@@ -2,7 +2,7 @@
 // Created by cerbe on 13.01.2021.
 //
 
-#include "gtest/gtest.h"
+#include "Test.h"
 #include "include/Expression.h"
 
 #define SUITE_NAME AnyTests
@@ -92,37 +92,26 @@ TEST_F(SUITE_NAME, SimpleDivTest) {
     }
 }
 
-TEST_F(SUITE_NAME, NoOperatorExceptionTest) {
+TEST(PPCAT(Special, SUITE_NAME), NoOperatorExceptionTest) {
     BinaryOperation expression;
     ASSERT_THROW(expression.evaluate(), BinaryOperationException);
 }
 
-TEST_F(SUITE_NAME, SecondOperatorExceptionTest) {
+TEST(PPCAT(Special, SUITE_NAME), SecondOperatorExceptionTest) {
     BinaryOperation expression;
     expression.addOperator(Operators::DIV);
     ASSERT_THROW(expression.addOperator(Operators::MUL), BinaryOperationException);
 }
 
-TEST_F(SUITE_NAME, ThirdNumberExceptionTest) {
+TEST(PPCAT(Special, SUITE_NAME), ThirdNumberExceptionTest) {
     BinaryOperation expression;
-    expression.addNumber(testData.cbegin()->left);
-    expression.addNumber(testData.cbegin()->right);
+    expression.addNumber(5);
+    expression.addNumber(10);
     expression.addOperator(Operators::PLUS);
     ASSERT_THROW(expression.addNumber(12), BinaryOperationException);
 }
 
-/* FIXME
-    All tests in the same test suite must use the same test fixture
-    class, so mixing TEST_F and TEST in the same test suite is
-    illegal.  In test suite AnyTests,
-    test SimplePlusTest is defined using TEST_F but
-    test NotEnoughNumbersExceptionTest is defined using TEST.  You probably
-    want to change the TEST to TEST_F or move it to another test
-    case.
-
-    Current solution not best I suppose
- */
-TEST_F(SUITE_NAME, NotEnoughNumbersExceptionTest) {
+TEST(PPCAT(Special, SUITE_NAME), NotEnoughNumbersExceptionTest) {
     BinaryOperation expr;
     expr.addOperator(Operators::DIV);
     ASSERT_THROW(expr.evaluate(), BinaryOperationException);
