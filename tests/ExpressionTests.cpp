@@ -4,17 +4,26 @@
 
 #include "Test.h"
 
-#include <utility>
 #include "include/Expression.h"
+#include <memory>
 
 #define SUITE_NAME ExpressionTests
 
 struct TestData {
-    TestData(std::string exprString, double expectedResult) :
-            exprString(std::move(exprString)),
-            expectedResult(expectedResult) {};
+    TestData(std::string str, double expectedResult) :
+            expectedResult(expectedResult),
+            exprString(std::move(str)) {
+    };
 
-    // FIXME too big values, need pointer
+    const std::string &getExprString() const {
+        return exprString;
+    }
+
+    double getExpectedResult() const {
+        return expectedResult;
+    }
+
+private:
     std::string exprString;
     double expectedResult;
 };
@@ -25,22 +34,22 @@ protected:
         PrepareTestData();
     }
 
-    // FIXME should be pointer
-    std::vector<TestData> testData;
+    std::vector<std::shared_ptr<TestData>> testData;
 
 private:
     void PrepareTestData() {
         testData = {
-                {"1 + 2 + 3",                                                (1 + 2 + 3)},
-                {"20.6 * 12 - 40",                                           (20.6 * 12 - 40)},
-                {"208.999 / 88 * 20",                                        (208.999 / 88 * 20)},
-                {"50 + 5 * 2",                                               (50 + 5 * 2)},
-                {"(50 + 5) * 2",                                             ((50 + 5) * 2)},
-                {"(200 - 49.9) / 2 + 10",                                    ((200 - 49.9) / 2 + 10)},
-                {"(200 - 49.9) / (2 + 10)",                                  ((200 - 49.9) / (2 + 10))},
-                {"123 * (50 + 80) / 22",                                     (123 * (50 + 80) / 22)},
-                {"1 + 5 * (421 - 905) / ((390.87 + 60.8) * (9333 - 180.5))", (1 + 5 * (421 - 905) /
-                                                                                  ((390.87 + 60.8) * (9333 - 180.5)))}
+                std::make_shared<TestData>("1 + 2 + 3", (1 + 2 + 3)),
+                std::make_shared<TestData>("20.6 * 12 - 40", (20.6 * 12 - 40)),
+                std::make_shared<TestData>("208.999 / 88 * 20", (208.999 / 88 * 20)),
+                std::make_shared<TestData>("50 + 5 * 2", (50 + 5 * 2)),
+                std::make_shared<TestData>("(50 + 5) * 2", ((50 + 5) * 2)),
+                std::make_shared<TestData>("(200 - 49.9) / 2 + 10", ((200 - 49.9) / 2 + 10)),
+                std::make_shared<TestData>("(200 - 49.9) / (2 + 10)", ((200 - 49.9) / (2 + 10))),
+                std::make_shared<TestData>("123 * (50 + 80) / 22", (123 * (50 + 80) / 22)),
+                std::make_shared<TestData>("1 + 5 * (421 - 905) / ((390.87 + 60.8) * (9333 - 180.5))",
+                                           (1 + 5 * (421 - 905) / ((390.87 + 60.8) * (9333 - 180.5)))
+                )
         };
     }
 };
@@ -48,15 +57,15 @@ private:
 TEST_F(SUITE_NAME, SimpleExpressionsTest) {
     double result;
     size_t cnt = 0;
-    std::string s1("1 + 2 + 3");
+    std::string s1;
 
     for (auto data : testData) {
-//        Expression expression(data.exprString);
-//        expression.parseExpression();
-//        result = expression.getResult();
+        Expression expression(data->getExprString());
+        expression.parseExpression();
+        result = expression.getResult();
 
-//        EXPECT_EQ(data.expectedResult, result) << "Test iteration: " << cnt;
-//        ++cnt;
+        EXPECT_EQ(data->getExpectedResult(), result) << "Test iteration: " << cnt;
+        ++cnt;
     }
 }
 

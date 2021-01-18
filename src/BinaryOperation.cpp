@@ -16,9 +16,9 @@ BinaryOperation::retType BinaryOperation::evaluate() const {
 
 void BinaryOperation::addNumber(Number num) {
     if (_left == nullptr) {
-        _left = new Number(num);
+        _left = std::make_shared<Number>(num);
     } else if (_right == nullptr) {
-        _right = new Number(num);
+        _right = std::make_shared<Number>(num);
     } else {
         throw BinaryOperationException("Too much numbers");
     }
@@ -46,9 +46,3 @@ void BinaryOperation::addOperator(Operators op) {
         throw BinaryOperationException("More than 1 operator given");
     }
 }
-
-BinaryOperation::~BinaryOperation() {
-    delete _left;
-    delete _right;
-}
-

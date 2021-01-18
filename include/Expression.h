@@ -4,6 +4,7 @@
 #include <sstream>
 #include <vector>
 #include <utility>
+#include <memory>
 
 #include "BinaryOperation.h"
 #include "Number.h"
@@ -27,11 +28,12 @@ struct Expression {
     virtual void evaluate() const;
 
     explicit Expression(std::string expression) :
-        _expression(std::move(expression))
-//        bracket_counter(0)
+        _expression(std::make_shared<std::string>(expression))
         {
-            _numbers.reserve(expression.size() / 2);
-            _operators.reserve(expression.size() / 2);
+            _numbers = std::make_shared<_numbers_collection>();
+            _operators = std::make_shared<_operators_collection>();
+            _numbers->reserve(expression.size() / 2);
+            _operators->reserve(expression.size() / 2);
         };
 
     void parseExpression();
@@ -48,10 +50,12 @@ private:
         AddOperator
     };
 
-    // FIXME this can be too big to contain them in class object - refactor them to pointers
-    std::string _expression;
-    std::vector<double> _numbers;
-    std::vector<char> _operators;
+    typedef std::vector<double> _numbers_collection;
+    typedef std::vector<char> _operators_collection;
+
+    std::shared_ptr<std::string> _expression;
+    std::shared_ptr<_numbers_collection> _numbers;
+    std::shared_ptr<_operators_collection> _operators;
 
     void parseString();
 

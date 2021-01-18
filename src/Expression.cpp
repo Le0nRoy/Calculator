@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <cmath>
 #include <map>
-#include <list>
 
 /// priority / 1000 - get bracket priority (the bigger number - the higher priority)
 /// if equals to zero - check other types of priority or equal values
@@ -34,34 +33,36 @@ void Expression::evaluate() const {
 }
 
 void Expression::parseExpression() {
+    typedef std::map<size_t, size_t, PriorityComparator> priorities_map;
+
     size_t priority = 0;
     size_t counter = 0;
     // Key is priority, Value - position in _operators
-    // FIXME allocate it on heap
-    std::map<size_t, size_t, PriorityComparator> priorities;
+    std::shared_ptr<priorities_map> priorities(
+            new priorities_map);
 
     // TODO priorities setting may be done with string parsing so merge them
     parseString();
 
     // Set priorities for operations
-    for (auto op : _operators) {
+    for (auto op : *_operators) {
         switch (op) {
             case '(':
                 priority += 1000;
-                priorities[priority] = counter;
+                (*priorities)[priority] = counter;
                 break;
             case ')':
                 // FIXME Here can be caught bug - extra open bracket
                 priority -= 1000;
-                priorities[priority] = counter;
+                (*priorities)[priority] = counter;
                 break;
             case '*':
             case '/':
-                priorities[priority + 100] = counter;
+                (*priorities)[priority + 100] = counter;
                 break;
             case '+':
             case '-':
-                priorities[priority] = counter;
+                (*priorities)[priority] = counter;
                 break;
             default:
                 // Can't even imagine how to get into this block
@@ -80,16 +81,16 @@ void Expression::parseString() {
     size_t i = 0;
     double value;
     std::istringstream iss;
-    std::string buf(_expression);
+    std::string buf(*_expression);
     Operations lastOperation;
 
     // Remove all spaces due to there uselessness
     // FIXME this may cause bug - if 2 different numbers are separated only by space,
     //  they will be merged into one BIG number
-    std::remove(buf.begin(), buf.end(), ' ');
+    buf.erase(std::remove(buf.begin(), buf.end(), ' '), buf.end());
     iss.str(buf);
 
-    _numbers.push_back(NAN);
+    _numbers->push_back(NAN);
     // Parsing string to two separate arrays - _numbers and _operators with next relations:
     // _numbers[i] is LEFT to _operators[i]
     // _numbers[i+1] is RIGHT to _operators[i]
@@ -112,29 +113,30 @@ void Expression::parseString() {
                     } else if (lastOperation == Operations::OpenBracket) {
                         throw ExpressionException("Operator goes after opening bracket.");
                     }
-                    _operators.push_back(c);
+                    _operators->push_back(c);
                     lastOperation = Operations::AddOperator;
                     break;
                 case ')':
-                    // FIXME NAN should be put BEFORE '(' and AFTER ')'
                     if (lastOperation == Operations::OpenBracket) {
                         throw ExpressionException("Closing bracket goes after opening bracket.");
                     } else if (lastOperation == Operations::AddOperator) {
                         throw ExpressionException("Closing bracket goes after operator.");
                     }
-                    _operators.push_back(c);
-                    _numbers.push_back(NAN);
+                    _operators->push_back(c);
+                    _numbers->push_back(NAN);
                     lastOperation = Operations::CloseBracket;
                     break;
                 case '(':
                     // TODO Multiply may be added later
                     if (lastOperation == Operations::AddNumber) {
-                        throw ExpressionException("Opening bracket after number (operator should be inserted explicitly).");
+                        throw ExpressionException(
+                                "Opening bracket after number (operator should be inserted explicitly).");
                     } else if (lastOperation == Operations::CloseBracket) {
-                        throw ExpressionException("Opening bracket after closed bracket (operator should be inserted explicitly).");
+                        throw ExpressionException(
+                                "Opening bracket after closed bracket (operator should be inserted explicitly).");
                     }
-                    _numbers.push_back(NAN);
-                    _operators.push_back(c);
+                    _numbers->push_back(NAN);
+                    _operators->push_back(c);
                     lastOperation = Operations::OpenBracket;
                     break;
                 default:
@@ -148,7 +150,7 @@ void Expression::parseString() {
                         iss >> value;
                         i = iss.tellg();
                         --i;
-                        _numbers.push_back(value);
+                        _numbers->push_back(value);
                         lastOperation = Operations::AddNumber;
                     } else {
                         throw ExpressionException("Invalid character is given.");
@@ -157,10 +159,13 @@ void Expression::parseString() {
             }
         }
     } catch (ExpressionException &e) {
-        std::string underscoreError(_expression.size(), ' ');
+        // FIXME _expression may contain spaces - that's why this can't work properly
+//        std::string underscoreError(_expression.size(), ' ');
+        std::string underscoreError(buf.size(), ' ');
         underscoreError.at(i) = '^';
         std::cout << e.getMessage() << std::endl;
-        std::cout << _expression << std::endl;
+//        std::cout << _expression << std::endl;
+        std::cout << buf << std::endl;
         std::cout << underscoreError << std::endl;
     } catch (std::exception &e) {
         std::cout << "Unexpected exception was caught parsing expression." << std::endl;

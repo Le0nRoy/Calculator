@@ -7,6 +7,7 @@
 
 #include "Number.h"
 #include <functional>
+#include <memory>
 #include <utility>
 
 enum class Operators {
@@ -33,16 +34,13 @@ struct BinaryOperation {
 
     retType evaluate() const;
 
-    // TODO derieve class from interface Operation
-    virtual ~BinaryOperation();
-
     void addNumber(Number num);
 
     void addOperator(Operators op);
 
 private:
-    Number *_left = nullptr;
-    Number *_right = nullptr;
+    std::shared_ptr<Number> _left = nullptr;
+    std::shared_ptr<Number> _right = nullptr;
     std::function<retType ()> _operation;
 
     retType plus() const {
