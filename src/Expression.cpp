@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cmath>
 #include <map>
+#include <unordered_map>
 
 /// priority / 1000 - get bracket priority (the bigger number - the higher priority)
 /// if equals to zero - check other types of priority or equal values
@@ -34,12 +35,13 @@ void Expression::evaluate() const {
 
 void Expression::parseExpression() {
     typedef std::map<size_t, size_t, PriorityComparator> priorities_map;
+    typedef std::unordered_map<size_t, double> result_map;
 
     size_t priority = 0;
     size_t counter = 0;
     // Key is priority, Value - position in _operators
-    std::shared_ptr<priorities_map> priorities(
-            new priorities_map);
+    std::shared_ptr<priorities_map> priorities(new priorities_map);
+    std::shared_ptr<result_map> results(new result_map);
 
     // TODO priorities setting may be done with string parsing so merge them
     parseString();
@@ -48,13 +50,18 @@ void Expression::parseExpression() {
     for (auto op : *_operators) {
         switch (op) {
             case '(':
+                // We don't need brackets to have own priority (they aren't independent operator)
                 priority += 1000;
-                (*priorities)[priority] = counter;
+//                (*priorities)[priority] = counter;
+                // priority value will change back to current value in the end of cycle block
+                // it is made to prevent bracket of having its own priority in list
+                --priority;
                 break;
             case ')':
-                // FIXME Here can be caught bug - extra open bracket
+                // FIXME Here can be caught bug - extra closing brackets (or not enough brackets)
                 priority -= 1000;
-                (*priorities)[priority] = counter;
+//                (*priorities)[priority] = counter;
+                --priority;
                 break;
             case '*':
             case '/':
@@ -73,8 +80,31 @@ void Expression::parseExpression() {
         ++counter;
     }
 
-    // TODO After priorities of operations are set we can finally evaluate our expression using BinaryOperation class
+    // TODO pairs that have worked should be erased
+    // TODO this cycle should be repeated until map gets empty
+    for (auto pair : *priorities) {
+        counter = pair.second;
+        if ((*_numbers)[counter] == NAN || (*_numbers)[counter + 1] == NAN) {
+            // TODO Check results map or go further
+            if ((*_numbers)[counter] == NAN) {
+                // FIXME if multiple brackets then error will be (should iterate until find valid operator)
+                // counter-1 - will be position of ')', counter-2 - position of operation which will give us result
+                if (results->find(counter - 2) != results->end()) {
+                    // TODO fill BinaryOperation
+                }
+            } else {
+                // counter+1 - will be position of '(', counter+2 - position of operation which will give us result
+                if (results->find(counter + 2) != results->end()) {
+                    // TODO fill BinaryOperation
+                }
+            }
+        } else {
+            // TODO fill BinaryOperation
+            //(*results)[counter] = BinaryOperation((*_numbers)[counter], (*_numbers)[counter + 1], (*_operators)[counter]).evaluate();
+        }
+    }
 
+    // TODO get final value
 }
 
 void Expression::parseString() {
@@ -160,6 +190,7 @@ void Expression::parseString() {
         }
     } catch (ExpressionException &e) {
         // FIXME _expression may contain spaces - that's why this can't work properly
+        //  std::distance may be used somehow...
 //        std::string underscoreError(_expression.size(), ' ');
         std::string underscoreError(buf.size(), ' ');
         underscoreError.at(i) = '^';

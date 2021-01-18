@@ -54,6 +54,7 @@ private:
     typedef std::vector<char> _operators_collection;
 
     std::shared_ptr<std::string> _expression;
+    // FIXME make 'std::tuple' map with number, operator, priority
     std::shared_ptr<_numbers_collection> _numbers;
     std::shared_ptr<_operators_collection> _operators;
 
