@@ -8,6 +8,18 @@
 #define SUITE_NAME AnyTests
 
 struct TestData {
+    TestData(double left, double right) :
+    left(left), right(right) {}
+
+    double getLeft() const {
+        return left;
+    }
+
+    double getRight() const {
+        return right;
+    }
+
+private:
     double left;
     double right;
 };
@@ -16,12 +28,12 @@ struct SUITE_NAME : ::testing::Test {
 protected:
     void PrepareTestData() {
         testData = {
-                {257,       845},
-                {0,         1},
-                {1,         0},
-                {124.9878,  89},
-                {9090.9090, 8080.8080},
-                {0,         0}
+                std::make_shared<TestData>(257,       845),
+                std::make_shared<TestData>(0,         1),
+                std::make_shared<TestData>(1,         0),
+                std::make_shared<TestData>(124.9878,  89),
+                std::make_shared<TestData>(9090.9090, 8080.8080),
+                std::make_shared<TestData>(0,         0)
         };
     }
 
@@ -29,16 +41,13 @@ protected:
         PrepareTestData();
     }
 
-    std::vector<TestData> testData;
+    std::vector<std::shared_ptr<TestData>> testData;
 };
 
 TEST_F(SUITE_NAME, SimplePlusTest) {
     for (auto data : testData) {
-        BinaryOperation expression;
-        expression.addNumber(data.left);
-        expression.addNumber(data.right);
-        expression.addOperator(Operators::PLUS);
-        double expected = data.left + data.right;
+        BinaryOperation expression(Number(data->getLeft()), Number(data->getRight()), '+');
+        double expected = data->getLeft() + data->getRight();
 
         double result = expression.evaluate();
 
@@ -48,11 +57,8 @@ TEST_F(SUITE_NAME, SimplePlusTest) {
 
 TEST_F(SUITE_NAME, SimpleMinusTest) {
     for (auto data : testData) {
-        BinaryOperation expression;
-        expression.addNumber(data.left);
-        expression.addNumber(data.right);
-        expression.addOperator(Operators::MINUS);
-        double expected = data.left - data.right;
+        BinaryOperation expression(Number(data->getLeft()), Number(data->getRight()), '-');
+        double expected = data->getLeft() - data->getRight();
 
         double result = expression.evaluate();
 
@@ -62,11 +68,8 @@ TEST_F(SUITE_NAME, SimpleMinusTest) {
 
 TEST_F(SUITE_NAME, SimpleMulTest) {
     for (auto data : testData) {
-        BinaryOperation expression;
-        expression.addNumber(data.left);
-        expression.addNumber(data.right);
-        expression.addOperator(Operators::MUL);
-        double expected = data.left * data.right;
+        BinaryOperation expression(Number(data->getLeft()), Number(data->getRight()), '*');
+        double expected = data->getLeft() * data->getRight();
 
         double result = expression.evaluate();
 
@@ -76,14 +79,11 @@ TEST_F(SUITE_NAME, SimpleMulTest) {
 
 TEST_F(SUITE_NAME, SimpleDivTest) {
     for (auto data : testData) {
-        BinaryOperation expression;
-        expression.addNumber(data.left);
-        expression.addNumber(data.right);
-        expression.addOperator(Operators::DIV);
-        if (data.right == 0) {
+        BinaryOperation expression(Number(data->getLeft()), Number(data->getRight()), '/');
+        if (data->getRight() == 0) {
             ASSERT_THROW(expression.evaluate(), BinaryOperationException);
         } else {
-            double expected = data.left / data.right;
+            double expected = data->getLeft() / data->getRight();
 
             double result = expression.evaluate();
 
@@ -92,31 +92,7 @@ TEST_F(SUITE_NAME, SimpleDivTest) {
     }
 }
 
-TEST(PPCAT(Special, SUITE_NAME), NoOperatorExceptionTest) {
-    BinaryOperation expression;
-    ASSERT_THROW(expression.evaluate(), BinaryOperationException);
-}
-
-TEST(PPCAT(Special, SUITE_NAME), SecondOperatorExceptionTest) {
-    BinaryOperation expression;
-    expression.addOperator(Operators::DIV);
-    ASSERT_THROW(expression.addOperator(Operators::MUL), BinaryOperationException);
-}
-
-TEST(PPCAT(Special, SUITE_NAME), ThirdNumberExceptionTest) {
-    BinaryOperation expression;
-    expression.addNumber(5);
-    expression.addNumber(10);
-    expression.addOperator(Operators::PLUS);
-    ASSERT_THROW(expression.addNumber(12), BinaryOperationException);
-}
-
-TEST(PPCAT(Special, SUITE_NAME), NotEnoughNumbersExceptionTest) {
-    BinaryOperation expr;
-    expr.addOperator(Operators::DIV);
-    ASSERT_THROW(expr.evaluate(), BinaryOperationException);
-    expr.addNumber(1);
-    ASSERT_THROW(expr.evaluate(), BinaryOperationException);
-    expr.addNumber(1);
-    ASSERT_NO_THROW(expr.evaluate());
+TEST(PPCAT(Special, SUITE_NAME), WrongOperatorExceptionTest) {
+    ASSERT_THROW(BinaryOperation expression(Number(1), Number(2), '_'),
+                 BinaryOperationException);
 }

@@ -6,8 +6,10 @@
 #define BASE12CALC_NUMBER_H
 
 struct Number {
-    Number(double number) :
+    explicit Number(double number) :
         _number(number) {};
+
+    Number(const Number &num) = default;
 
     double getNumber() const {
         return _number;

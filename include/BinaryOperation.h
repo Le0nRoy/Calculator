@@ -10,13 +10,6 @@
 #include <memory>
 #include <utility>
 
-enum class Operators {
-    MUL,
-    DIV,
-    PLUS,
-    MINUS
-};
-
 struct BinaryOperationException : std::exception {
     BinaryOperationException(std::string message) : message(std::move(message)) {}
 
@@ -34,30 +27,20 @@ struct BinaryOperation {
 
     retType evaluate() const;
 
-    void addNumber(Number num);
-
-    void addOperator(Operators op);
+    BinaryOperation(const Number &left, const Number &right, const char op);
 
 private:
     std::shared_ptr<Number> _left = nullptr;
     std::shared_ptr<Number> _right = nullptr;
-    std::function<retType ()> _operation;
+    std::function<retType()> _operation;
 
-    retType plus() const {
-        return _left->getNumber() + _right->getNumber();
-    }
-    retType minus() const {
-        return _left->getNumber() - _right->getNumber();
-    }
-    retType mul() const {
-        return _left->getNumber() * _right->getNumber();
-    }
-    retType div() const {
-        if (_right->getNumber() == 0) {
-            throw BinaryOperationException("Zero is given as second operand for division.");
-        }
-        return _left->getNumber() / _right->getNumber();
-    }
+    retType plus() const;
+
+    retType minus() const;
+
+    retType mul() const;
+
+    retType div() const;
 };
 
 #endif //BASE12CALC_BINARYOPERATION_H
