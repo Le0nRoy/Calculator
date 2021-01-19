@@ -20,14 +20,16 @@ struct ExpressionException : std::exception {
         return message;
     }
 
+    const char *what() const noexcept override {
+        return message.data();
+    }
+
 private:
     std::string message;
 };
 
 struct Expression {
-    virtual void evaluate() const;
-
-    explicit Expression(std::string expression) :
+    explicit Expression(const std::string& expression) :
         _expression(std::make_shared<std::string>(expression))
         {
             _numbers = std::make_shared<_numbers_collection>();
@@ -38,7 +40,7 @@ struct Expression {
 
     void parseExpression();
 
-    double getResult() const {return 0;}
+    double getResult();
 
     ~Expression() = default;
 
@@ -50,6 +52,9 @@ private:
         AddOperator
     };
 
+    // FIXME later it should be changed to 'Number'
+    typedef double _ret_type;
+    // FIXME all 'double' should be changed to _ret_type;
     typedef std::vector<double> _numbers_collection;
     typedef std::vector<char> _operators_collection;
 
@@ -57,6 +62,8 @@ private:
     // FIXME make 'std::tuple' map with number, operator, priority
     std::shared_ptr<_numbers_collection> _numbers;
     std::shared_ptr<_operators_collection> _operators;
+
+    std::shared_ptr<double> _result;
 
     void parseString();
 

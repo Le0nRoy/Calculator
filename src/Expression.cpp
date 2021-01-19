@@ -29,17 +29,14 @@ bool PriorityComparator::operator()(const size_t &a, const size_t &b) {
     return (comp1 % 100) < (comp2 % 100);
 }
 
-void Expression::evaluate() const {
-
-}
-
 void Expression::parseExpression() {
+    // Key is priority, Value - position in _operators
     typedef std::map<size_t, size_t, PriorityComparator> priorities_map;
+    // Key is position in _operators, Value - result of operation
     typedef std::unordered_map<size_t, double> result_map;
 
     size_t priority = 0;
     size_t counter = 0;
-    // Key is priority, Value - position in _operators
     std::shared_ptr<priorities_map> priorities(new priorities_map);
     std::shared_ptr<result_map> results(new result_map);
 
@@ -52,7 +49,6 @@ void Expression::parseExpression() {
             case '(':
                 // We don't need brackets to have own priority (they aren't independent operator)
                 priority += 1000;
-//                (*priorities)[priority] = counter;
                 // priority value will change back to current value in the end of cycle block
                 // it is made to prevent bracket of having its own priority in list
                 --priority;
@@ -60,7 +56,6 @@ void Expression::parseExpression() {
             case ')':
                 // FIXME Here can be caught bug - extra closing brackets (or not enough brackets)
                 priority -= 1000;
-//                (*priorities)[priority] = counter;
                 --priority;
                 break;
             case '*':
@@ -80,31 +75,83 @@ void Expression::parseExpression() {
         ++counter;
     }
 
-    // TODO pairs that have worked should be erased
-    // TODO this cycle should be repeated until map gets empty
-    for (auto pair : *priorities) {
-        counter = pair.second;
-        if ((*_numbers)[counter] == NAN || (*_numbers)[counter + 1] == NAN) {
-            // TODO Check results map or go further
-            if ((*_numbers)[counter] == NAN) {
-                // FIXME if multiple brackets then error will be (should iterate until find valid operator)
-                // counter-1 - will be position of ')', counter-2 - position of operation which will give us result
-                if (results->find(counter - 2) != results->end()) {
-                    // TODO fill BinaryOperation
-                }
-            } else {
-                // counter+1 - will be position of '(', counter+2 - position of operation which will give us result
-                if (results->find(counter + 2) != results->end()) {
-                    // TODO fill BinaryOperation
-                }
-            }
-        } else {
-            // TODO fill BinaryOperation
-            //(*results)[counter] = BinaryOperation((*_numbers)[counter], (*_numbers)[counter + 1], (*_operators)[counter]).evaluate();
-        }
+    // TODO finalize
+    if (priority > 1000 || priority < 0) {
+        throw ExpressionException("Got extra brackets");
     }
 
-    // TODO get final value
+    // FIXME getting SIGTRAP somewhere in loop
+    for (auto pair : *priorities) {
+        double left;
+        double right;
+        counter = pair.second;
+        auto it = results->find(counter - 1);
+
+        if (it == results->end()) {
+            left = (*_numbers)[counter];
+        } else {
+            left = it->second;
+            results->erase(counter - 1);
+        }
+        // TODO figure out how to check this case
+        //  1 + 2 * 3
+        it = results->find(counter + 1);
+        if (it == results->end()) {
+            right = (*_numbers)[counter + 1];
+        } else {
+            right = it->second;
+            results->erase(counter + 1);
+        }
+
+        if (left == NAN || right == NAN) {
+            if ((*_numbers)[counter] == NAN) {
+                // counter-1 - will be position of ')',
+                // counter-2 - first possible position of operation which will give us result
+                auto it = _operators->begin();
+                std::advance(it, counter - 2);
+                auto resIt = std::find_if_not(std::reverse_iterator<decltype(it)>(it),
+                                              _operators->rend(), [](char c) {
+                            return (c == ')');
+                        });
+                if (resIt != _operators->rend()) {
+                    left = (*results)[std::distance(_operators->begin(), resIt.base())];
+                    results->erase(std::distance(_operators->begin(), resIt.base()));
+                } else {
+                    continue;
+                }
+            }
+            if ((*_numbers)[counter] == NAN) {
+                // counter+1 - will be position of '(',
+                // counter+2 - first possible position of operation which will give us result
+                auto it = _operators->begin();
+                std::advance(it, counter + 2);
+                auto resIt = std::find_if_not(it, _operators->end(), [](char c) {
+                    return (c == '(');
+                });
+                if (resIt != _operators->end()) {
+                    right = (*results)[std::distance(_operators->begin(), resIt)];
+                    results->erase(std::distance(_operators->begin(), resIt));
+                } else {
+                    continue;
+                }
+            }
+        }
+
+        // FIXME
+        //  when '1+2+3' then getting 2 separate results:
+        //  1+2
+        //  2+3
+        (*results)[counter] = BinaryOperation(Number(left),
+                                              Number(right),
+                                              (*_operators)[counter]).evaluate();
+    }
+
+    // After last iteration results should contain only one element
+    if (results->size() != 1) {
+        throw ExpressionException("More than one result left in map to the last iteration.");
+    } else {
+        _result = std::make_shared<double>(results->begin()->second);
+    }
 }
 
 void Expression::parseString() {
@@ -120,7 +167,6 @@ void Expression::parseString() {
     buf.erase(std::remove(buf.begin(), buf.end(), ' '), buf.end());
     iss.str(buf);
 
-    _numbers->push_back(NAN);
     // Parsing string to two separate arrays - _numbers and _operators with next relations:
     // _numbers[i] is LEFT to _operators[i]
     // _numbers[i+1] is RIGHT to _operators[i]
@@ -201,4 +247,11 @@ void Expression::parseString() {
     } catch (std::exception &e) {
         std::cout << "Unexpected exception was caught parsing expression." << std::endl;
     }
+}
+
+double Expression::getResult() {
+    if (_result == nullptr) {
+        this->parseExpression();
+    }
+    return *_result;
 }
