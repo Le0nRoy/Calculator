@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <cmath>
 #include <map>
-#include <unordered_map>
 
 /// priority / 1000 - get bracket priority (the bigger number - the higher priority)
 /// if equals to zero - check other types of priority or equal values
@@ -33,10 +32,10 @@ void Expression::parseExpression() {
     // Key is priority, Value - position in _operators
     typedef std::map<size_t, size_t, PriorityComparator> priorities_map;
     // Key is position in _operators, Value - result of operation
-    typedef std::unordered_map<size_t, double> result_map;
+    typedef std::map<size_t, double> result_map;
 
     size_t priority = 0;
-    size_t counter = 0;
+    size_t operationPosition = 0;
     std::shared_ptr<priorities_map> priorities(new priorities_map);
     std::shared_ptr<result_map> results(new result_map);
 
@@ -60,19 +59,18 @@ void Expression::parseExpression() {
                 break;
             case '*':
             case '/':
-                (*priorities)[priority + 100] = counter;
+                (*priorities)[priority + 100] = operationPosition;
                 break;
             case '+':
             case '-':
-                (*priorities)[priority] = counter;
+                (*priorities)[priority] = operationPosition;
                 break;
             default:
                 // Can't even imagine how to get into this block
                 throw ExpressionException("Something gone wrong...");
-                break;
         }
         ++priority;
-        ++counter;
+        ++operationPosition;
     }
 
     // TODO finalize
@@ -80,70 +78,64 @@ void Expression::parseExpression() {
         throw ExpressionException("Got extra brackets");
     }
 
-    // FIXME getting SIGTRAP somewhere in loop
     for (auto pair : *priorities) {
         double left;
         double right;
-        counter = pair.second;
-        auto it = results->find(counter - 1);
+        operationPosition = pair.second;
+        auto it = results->find(operationPosition - 1);
 
         if (it == results->end()) {
-            left = (*_numbers)[counter];
+            left = (*_numbers)[operationPosition];
         } else {
             left = it->second;
-            results->erase(counter - 1);
+            results->erase(operationPosition - 1);
         }
-        // TODO figure out how to check this case
-        //  1 + 2 * 3
-        it = results->find(counter + 1);
+        it = results->find(operationPosition + 1);
         if (it == results->end()) {
-            right = (*_numbers)[counter + 1];
+            right = (*_numbers)[operationPosition + 1];
         } else {
             right = it->second;
-            results->erase(counter + 1);
+            results->erase(operationPosition + 1);
         }
 
-        if (left == NAN || right == NAN) {
-            if ((*_numbers)[counter] == NAN) {
-                // counter-1 - will be position of ')',
-                // counter-2 - first possible position of operation which will give us result
-                auto it = _operators->begin();
-                std::advance(it, counter - 2);
-                auto resIt = std::find_if_not(std::reverse_iterator<decltype(it)>(it),
-                                              _operators->rend(), [](char c) {
-                            return (c == ')');
-                        });
-                if (resIt != _operators->rend()) {
-                    left = (*results)[std::distance(_operators->begin(), resIt.base())];
-                    results->erase(std::distance(_operators->begin(), resIt.base()));
+        if (std::isnan(left) || std::isnan(right)) {
+            if (std::isnan(left)) {
+                // Our default value lets us to check if this value is invalid
+                size_t nearestDoneOp = _operators->size();
+                for (auto res : *results) {
+                    if (res.first > operationPosition) {
+                        break;
+                    }
+                    nearestDoneOp = res.first;
+                }
+                if (nearestDoneOp < _operators->size()) {
+                    left = (*results)[nearestDoneOp];
+                    results->erase(nearestDoneOp);
                 } else {
-                    continue;
+                    throw ExpressionException("Could not find left operand for operation on position: " + std::to_string(pair.second));
                 }
             }
-            if ((*_numbers)[counter] == NAN) {
-                // counter+1 - will be position of '(',
-                // counter+2 - first possible position of operation which will give us result
-                auto it = _operators->begin();
-                std::advance(it, counter + 2);
-                auto resIt = std::find_if_not(it, _operators->end(), [](char c) {
-                    return (c == '(');
-                });
-                if (resIt != _operators->end()) {
-                    right = (*results)[std::distance(_operators->begin(), resIt)];
-                    results->erase(std::distance(_operators->begin(), resIt));
+            if (std::isnan(right)) {
+                // Our default value lets us to check if this value is invalid
+                size_t nearestDoneOp = _operators->size();
+                for (auto res : *results) {
+                    if (res.first > operationPosition) {
+                        nearestDoneOp = res.first;
+                        break;
+                    }
+                }
+                if (nearestDoneOp < _operators->size()) {
+                    right = (*results)[nearestDoneOp];
+                    results->erase(nearestDoneOp);
                 } else {
-                    continue;
+                    throw ExpressionException("Could not find right operand for operation on position: " + std::to_string(pair.second));
                 }
             }
         }
 
-        // FIXME
-        //  when '1+2+3' then getting 2 separate results:
-        //  1+2
-        //  2+3
-        (*results)[counter] = BinaryOperation(Number(left),
-                                              Number(right),
-                                              (*_operators)[counter]).evaluate();
+        (*results)[operationPosition] = BinaryOperation(Number(left),
+                                                        Number(right),
+                                                        (*_operators)[operationPosition]).evaluate();
     }
 
     // After last iteration results should contain only one element
