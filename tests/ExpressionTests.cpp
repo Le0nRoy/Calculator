@@ -6,6 +6,7 @@
 
 #include "include/Expression.h"
 #include <memory>
+#include <utility>
 
 #define SUITE_NAME ExpressionTests
 
@@ -14,6 +15,15 @@ struct TestData {
             expectedResult(expectedResult),
             exprString(std::move(str)) {
     };
+
+//    ~TestData() {
+//        try {
+//            exprString.erase();
+//        } catch (std::exception &e) {
+//            std::cout << "Exception in destructor" << std::endl
+//                      << e.what() << std::endl;
+//        }
+//    }
 
     const std::string &getExprString() const {
         return exprString;
@@ -30,25 +40,30 @@ private:
 
 struct SUITE_NAME : ::testing::Test {
 protected:
+protected:
     void SetUp() override {
         PrepareTestData();
     }
 
-    std::vector<std::shared_ptr<TestData>> testData;
+    std::vector<TestData> testData;
 
 private:
     void PrepareTestData() {
         testData = {
-                std::make_shared<TestData>("1 + 2 + 3", (1 + 2 + 3)),
-                std::make_shared<TestData>("20.6 * 12 - 40", (20.6 * 12 - 40)),
-                std::make_shared<TestData>("208.999 / 88 * 20", (208.999 / 88 * 20)),
-                std::make_shared<TestData>("50 + 5 * 2", (50 + 5 * 2)),
-                std::make_shared<TestData>("(50 + 5) * 2", ((50 + 5) * 2)),
-                std::make_shared<TestData>("(200 - 49.9) / 2 + 10", ((200 - 49.9) / 2 + 10)),
-                std::make_shared<TestData>("(200 - 49.9) / (2 + 10)", ((200 - 49.9) / (2 + 10))),
-                std::make_shared<TestData>("123 * (50 + 80) / 22", (123 * (50 + 80) / 22)),
-                std::make_shared<TestData>("1 + 5 * (421 - 905) / ((390.87 + 60.8) * (9333 - 180.5))",
-                                           (1 + 5 * (421 - 905) / ((390.87 + 60.8) * (9333 - 180.5)))
+                TestData("1 + 2 + 3", (1 + 2 + 3)),
+                TestData("50 + 5 * 2", (50 + 5 * 2)),
+                TestData("20.6 * 12 - 40", (20.6 * 12 - 40)),
+                TestData("208.999 / 88 * 20", (208.999 / 88 * 20)),
+                TestData("208.999 / 88 + 20", (208.999 / 88 + 20)),
+                TestData("(50 + 5) * 2", ((50 + 5) * 2)),
+                TestData("(200 - 49.9) / 2 + 10", ((200 - 49.9) / 2 + 10)),
+                TestData("(200 - 49.9) / (2 + 10)", ((200 - 49.9) / (2 + 10))),
+                TestData("123 * (50 + 80) / 22", (123. * (50 + 80) / 22)),
+                TestData("1 + 5 * (421 - 905) / ((390.87 + 60.8) * (9333 - 180.5))",
+                         (1 + 5 * (421 - 905) / ((390.87 + 60.8) * (9333 - 180.5)))
+                ),
+                TestData("1 + 5 * (421 - 905) / ((390.87 + 60.8) * 9333)",
+                         (1 + 5 * (421 - 905) / ((390.87 + 60.8) * 9333))
                 )
         };
     }
@@ -58,13 +73,25 @@ TEST_F(SUITE_NAME, SimpleExpressionsTest) {
     double result;
     size_t cnt = 0;
     std::string s1;
+    std::shared_ptr<Expression> expression;
 
     for (auto data : testData) {
-        Expression expression(data->getExprString());
-        expression.parseExpression();
-        result = expression.getResult();
+        try {
+            expression = std::make_shared<Expression>(data.getExprString());
+            EXPECT_NO_THROW(expression->parseExpression())
+                                << "On test iteration: " << cnt << std::endl;
+            result = expression->getResult();
 
-        EXPECT_EQ(data->getExpectedResult(), result) << "Test iteration: " << cnt;
+            EXPECT_EQ(data.getExpectedResult(), result) << "Test iteration: " << cnt;
+        } catch (ExpressionException &e) {
+            std::cout << "Test data:" << std::endl
+                      << data.getExprString() << std::endl;
+        } catch (std::exception &e) {
+            std::cout << "Unexpected exception was caught in test body on iteration: " << cnt << std::endl
+                      << e.what() << std::endl
+                      << "Test data:" << std::endl
+                      << data.getExprString() << std::endl;
+        }
         ++cnt;
     }
 }

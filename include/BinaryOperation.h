@@ -17,6 +17,10 @@ struct BinaryOperationException : std::exception {
         return message;
     }
 
+    const char *what() const noexcept override {
+        return message.data();
+    }
+
 private:
     std::string message;
 };
