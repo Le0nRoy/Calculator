@@ -16,15 +16,6 @@ struct TestData {
             exprString(std::move(str)) {
     };
 
-//    ~TestData() {
-//        try {
-//            exprString.erase();
-//        } catch (std::exception &e) {
-//            std::cout << "Exception in destructor" << std::endl
-//                      << e.what() << std::endl;
-//        }
-//    }
-
     const std::string &getExprString() const {
         return exprString;
     }
@@ -65,7 +56,13 @@ private:
                 ),
                 TestData("1 + 5 * (421 - 905) / ((390.87 + 60.8) * 9333)",
                          (1 + 5 * (421 - 905) / ((390.87 + 60.8) * 9333))
-                )
+                ),
+                TestData("(23/9 - 41/21) / (57/49) + (17/9) / 6",
+                        ((23./9 - 41./21) / (57./49) + (17./9) / 6)),
+                TestData("23/9 - 41/21 / 57/49 + 17/9 / 6",
+                        ((23./9 - 41./21) / (57./49) + (17./9) / 6)),
+                TestData("23/9 - 41/21 / 57/49 + 17/9 / 6",
+                        (23./9 - 41./21 / 57./49 + 17./9 / 6))
         };
     }
 };

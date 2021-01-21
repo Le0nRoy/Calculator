@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 # TODO move tests to separate project to have ability to build them and main project
-# TODO Build googletest lib separately to avoid its rebuilding (in git move it to gitmodules)
+# TODO Build googletest lib separately to avoid its rebuilding
 project(Google_tests)
 
 set(CMAKE_CXX_STANDARD 11)
