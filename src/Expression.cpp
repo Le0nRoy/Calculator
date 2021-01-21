@@ -33,11 +33,14 @@ void Expression::parseExpression() {
     typedef std::map<size_t, size_t, PriorityComparator> priorities_map;
     // Key is position in _operators, Value - result of operation
     typedef std::map<size_t, double> result_map;
+    // Key - value from _numbers, Value - flag showing if number was already used
+    typedef std::map<double, bool> used_numbers_map;
 
     size_t priority = 0;
     size_t operationPosition = 0;
     std::shared_ptr<priorities_map> priorities(new priorities_map);
     std::shared_ptr<result_map> results(new result_map);
+    used_numbers_map usedNumbers;
 
     // TODO priorities setting may be done with string parsing so merge them
     parseString();
@@ -86,6 +89,11 @@ void Expression::parseExpression() {
 
         if (it == results->end()) {
             left = (*_numbers)[operationPosition];
+            if (usedNumbers.find(left) != usedNumbers.end()) {
+                left = std::nan("");
+            } else {
+                usedNumbers[left] = true;
+            }
         } else {
             left = it->second;
             results->erase(operationPosition - 1);
@@ -93,6 +101,11 @@ void Expression::parseExpression() {
         it = results->find(operationPosition + 1);
         if (it == results->end()) {
             right = (*_numbers)[operationPosition + 1];
+            if (usedNumbers.find(right) != usedNumbers.end()) {
+                right = std::nan("");
+            } else {
+                usedNumbers[right] = true;
+            }
         } else {
             right = it->second;
             results->erase(operationPosition + 1);

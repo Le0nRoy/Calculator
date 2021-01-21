@@ -63,7 +63,7 @@ private:
     std::shared_ptr<_numbers_collection> _numbers;
     std::shared_ptr<_operators_collection> _operators;
 
-    std::shared_ptr<double> _result;
+    std::shared_ptr<_ret_type> _result;
 
     void parseString();
 
