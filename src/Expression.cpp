@@ -36,7 +36,7 @@ void Expression::parseExpression() {
 /* Key - position in _numbers, Value - flag showing if number was already used */
     typedef std::map<double, bool> used_numbers_map;
 
-    size_t priority = 0;
+    int priority = 0;
     size_t operationPosition = 0;
     size_t nearestDoneOp;
     double number;
@@ -115,8 +115,10 @@ void Expression::parseExpression() {
                 _operators->push_back(c);
                 _numbers->push_back(NAN);
                 lastOperation = Operations::CloseBracket;
-                // FIXME Here can be caught bug - extra closing brackets (or not enough brackets)
                 priority -= 1000;
+                if (priority < 0) {
+                    throw ExpressionException("Got redundant closing bracket.");
+                }
                 operationPosition++;
                 break;
             default:
@@ -139,9 +141,8 @@ void Expression::parseExpression() {
         }
     }
 
-    // TODO finalize
-    if (priority > 1000 || priority < 0) {
-        throw ExpressionException("Got extra brackets");
+    if (priority > 1000) {
+        throw ExpressionException("Got redundant opening brackets");
     }
 
 /* Evaluate all operations */

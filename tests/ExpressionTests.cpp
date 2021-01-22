@@ -7,6 +7,7 @@
 #include "include/Expression.h"
 #include <memory>
 #include <utility>
+#include <cmath>
 
 #define SUITE_NAME ExpressionTests
 
@@ -60,7 +61,7 @@ private:
                 TestData("(23/9 - 41/21) / (57/49) + (17/9) / 6",
                          ((23. / 9 - 41. / 21) / (57. / 49) + (17. / 9) / 6)),
                 TestData("(23/9 - 41/21) / 57/49 + 17/9 / 6",
-                         ((23./9 - 41./21) / 57/49 + 17./9 / 6)),
+                         ((23. / 9 - 41. / 21) / 57 / 49 + 17. / 9 / 6)),
                 TestData("23/9 - 41/21 / 57/49 + 17/9 / 6",
                          (23. / 9 - 41. / 21 / 57. / 49 + 17. / 9 / 6))
         };
@@ -70,7 +71,6 @@ private:
 TEST_F(SUITE_NAME, SimpleExpressionsTest) {
     double result;
     size_t cnt = 0;
-    std::string s1;
     std::shared_ptr<Expression> expression;
 
     for (auto data : testData) {
@@ -92,6 +92,34 @@ TEST_F(SUITE_NAME, SimpleExpressionsTest) {
                       << e.what() << std::endl
                       << "Test data:" << std::endl
                       << data.getExprString() << std::endl;
+        }
+        ++cnt;
+    }
+}
+
+TEST(PPCAT(Brackets, SUITE_NAME), RedundantBracketsTest) {
+    std::vector<std::string> testData = {
+            "1 * (2 + 3))",
+            "(1 * (2 + 3)"
+    };
+    size_t cnt = 0;
+    std::shared_ptr<Expression> expression;
+
+    for (auto data : testData) {
+        try {
+            expression = std::make_shared<Expression>(data);
+            expression->getResult();
+            EXPECT_TRUE(false)
+                                << "No expression was thrown" << std::endl
+                                << "Test iteration: " << cnt << std::endl;
+        } catch (ExpressionException &e) {
+            EXPECT_NE(std::string(e.what()).find("redundant"), std::string::npos)
+                                << "Wrong error happened in algorithm" << std::endl
+                                << "Test iteration: " << cnt << std::endl;
+        } catch (std::exception &e) {
+            EXPECT_TRUE(false)
+                                << "Wrong exception was caught" << std::endl
+                                << "Test iteration: " << cnt << std::endl;
         }
         ++cnt;
     }
