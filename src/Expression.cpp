@@ -33,7 +33,7 @@ void Expression::parseExpression() {
     typedef std::map<size_t, size_t, PriorityComparator> priorities_map;
     // Key is position in _operators, Value - result of operation
     typedef std::map<size_t, double> result_map;
-    // Key - value from _numbers, Value - flag showing if number was already used
+    // Key - position in _numbers, Value - flag showing if number was already used
     typedef std::map<double, bool> used_numbers_map;
 
     size_t priority = 0;
@@ -89,10 +89,10 @@ void Expression::parseExpression() {
 
         if (it == results->end()) {
             left = (*_numbers)[operationPosition];
-            if (usedNumbers.find(left) != usedNumbers.end()) {
+            if (usedNumbers.find(operationPosition) != usedNumbers.end()) {
                 left = std::nan("");
             } else {
-                usedNumbers[left] = true;
+                usedNumbers[operationPosition] = true;
             }
         } else {
             left = it->second;
@@ -101,10 +101,10 @@ void Expression::parseExpression() {
         it = results->find(operationPosition + 1);
         if (it == results->end()) {
             right = (*_numbers)[operationPosition + 1];
-            if (usedNumbers.find(right) != usedNumbers.end()) {
+            if (usedNumbers.find(operationPosition + 1) != usedNumbers.end()) {
                 right = std::nan("");
             } else {
-                usedNumbers[right] = true;
+                usedNumbers[operationPosition + 1] = true;
             }
         } else {
             right = it->second;

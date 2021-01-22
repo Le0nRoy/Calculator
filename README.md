@@ -16,3 +16,8 @@ Current state of CMakeLists only lets to build static library and add it to proj
 - Add Qt-based (or some other) frontend
 - Add graphic drawing
 - Add server functional (Berkley-API)
+
+# Math problems
+a/b/c - what is it?
+1. (a * c)/b - same as a / (b/c)
+2. (a/b)/c

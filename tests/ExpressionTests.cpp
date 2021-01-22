@@ -58,11 +58,11 @@ private:
                          (1 + 5 * (421 - 905) / ((390.87 + 60.8) * 9333))
                 ),
                 TestData("(23/9 - 41/21) / (57/49) + (17/9) / 6",
-                        ((23./9 - 41./21) / (57./49) + (17./9) / 6)),
+                         ((23. / 9 - 41. / 21) / (57. / 49) + (17. / 9) / 6)),
+                TestData("(23/9 - 41/21) / 57/49 + 17/9 / 6",
+                         ((23./9 - 41./21) / 57/49 + 17./9 / 6)),
                 TestData("23/9 - 41/21 / 57/49 + 17/9 / 6",
-                        ((23./9 - 41./21) / (57./49) + (17./9) / 6)),
-                TestData("23/9 - 41/21 / 57/49 + 17/9 / 6",
-                        (23./9 - 41./21 / 57./49 + 17./9 / 6))
+                         (23. / 9 - 41. / 21 / 57. / 49 + 17. / 9 / 6))
         };
     }
 };
@@ -80,7 +80,10 @@ TEST_F(SUITE_NAME, SimpleExpressionsTest) {
                                 << "On test iteration: " << cnt << std::endl;
             result = expression->getResult();
 
-            EXPECT_EQ(data.getExpectedResult(), result) << "Test iteration: " << cnt;
+            EXPECT_EQ(data.getExpectedResult(), result)
+                                << "Test iteration: " << cnt << std::endl
+                                << "Test data:" << std::endl
+                                << data.getExprString() << std::endl;
         } catch (ExpressionException &e) {
             std::cout << "Test data:" << std::endl
                       << data.getExprString() << std::endl;
