@@ -5,7 +5,7 @@
 Current state of CMakeLists only lets to build static library and add it to project with google-tests
 
 #TODO:
-- Create simple console-based frontend (already have it in main.cpp but maybe some improvements are needed)
+- Refactor ExpressionException
 - Make tests for extra brackets
 - Make tests for division by 0(zero)
 - Add converter from one notation to other

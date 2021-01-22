@@ -16,16 +16,26 @@ struct PriorityComparator {
 struct ExpressionException : std::exception {
     explicit ExpressionException(std::string message) : message(std::move(message)) {}
 
-    const std::string &getMessage() const {
-        return message;
-    }
-
     const char *what() const noexcept override {
         return message.data();
     }
 
 private:
     std::string message;
+
+// TODO add to description of exception more information
+
+//    } catch (ExpressionException &e) {
+//        // FIXME _expression may contain spaces - that's why this can't work properly
+//        //  std::distance may be used somehow...
+////        std::string underscoreError(_expression.size(), ' ');
+//        std::string underscoreError(buf.size(), ' ');
+//        underscoreError.at(charPositionInBuf) = '^';
+//        std::cout << e.getMessage() << std::endl;
+////        std::cout << _expression << std::endl;
+//        std::cout << buf << std::endl;
+//        std::cout << underscoreError << std::endl;
+//    }
 };
 
 struct Expression {
@@ -64,7 +74,5 @@ private:
     std::shared_ptr<_operators_collection> _operators;
 
     std::shared_ptr<_ret_type> _result;
-
-    void parseString();
 
 };
