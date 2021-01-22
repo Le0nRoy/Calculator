@@ -28,7 +28,7 @@ add_subdirectory(tests)
 # Executable compilation block
 # TODO main is frontend part so should be moved to separate CMakes
 add_executable(${MAIN_LIB_NAME}
-        src/main.cpp
+        src/frontend/main.cpp
         ${SRC}
         )
 
