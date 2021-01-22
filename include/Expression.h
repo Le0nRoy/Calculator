@@ -23,30 +23,16 @@ struct ExpressionException : std::exception {
 private:
     std::string message;
 
-// TODO add to description of exception more information
-
-//    } catch (ExpressionException &e) {
-//        // FIXME _expression may contain spaces - that's why this can't work properly
-//        //  std::distance may be used somehow...
-////        std::string underscoreError(_expression.size(), ' ');
-//        std::string underscoreError(buf.size(), ' ');
-//        underscoreError.at(charPositionInBuf) = '^';
-//        std::cout << e.getMessage() << std::endl;
-////        std::cout << _expression << std::endl;
-//        std::cout << buf << std::endl;
-//        std::cout << underscoreError << std::endl;
-//    }
 };
 
 struct Expression {
-    explicit Expression(const std::string& expression) :
-        _expression(std::make_shared<std::string>(expression))
-        {
-            _numbers = std::make_shared<_numbers_collection>();
-            _operators = std::make_shared<_operators_collection>();
-            _numbers->reserve(expression.size() / 2);
-            _operators->reserve(expression.size() / 2);
-        };
+    explicit Expression(const std::string &expression) :
+            _expression(std::make_shared<std::string>(expression)) {
+        _numbers = std::make_shared<_numbers_collection>();
+        _operators = std::make_shared<_operators_collection>();
+        _numbers->reserve(expression.size() / 2);
+        _operators->reserve(expression.size() / 2);
+    };
 
     void parseExpression();
 
@@ -55,7 +41,7 @@ struct Expression {
     ~Expression() = default;
 
 private:
-    enum class Operations : unsigned char{
+    enum class Operations : unsigned char {
         OpenBracket,
         CloseBracket,
         AddNumber,
@@ -74,5 +60,20 @@ private:
     std::shared_ptr<_operators_collection> _operators;
 
     std::shared_ptr<_ret_type> _result;
+
+    static void stringParsingExceptionThrow(const std::string &str, const std::string &expression, size_t charPositionInBuf) {
+        std::stringstream ss;
+        // FIXME _expression may contain spaces - that's why this can't work properly
+        //  std::distance may be used somehow...
+//        std::string underscoreError(_expression.size(), ' ');
+        std::string underscoreError(expression.size(), ' ');
+        underscoreError.at(charPositionInBuf) = '^';
+        ss << str << std::endl
+//        << _expression << std::endl
+        << expression << std::endl
+        << underscoreError;
+
+        throw ExpressionException(ss.str());
+    }
 
 };

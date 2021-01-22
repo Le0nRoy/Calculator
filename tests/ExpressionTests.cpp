@@ -6,8 +6,6 @@
 
 #include "include/Expression.h"
 #include <memory>
-#include <utility>
-#include <cmath>
 
 #define SUITE_NAME ExpressionTests
 
@@ -31,7 +29,6 @@ private:
 };
 
 struct SUITE_NAME : ::testing::Test {
-protected:
 protected:
     void SetUp() override {
         PrepareTestData();
@@ -114,11 +111,11 @@ TEST(PPCAT(Brackets, SUITE_NAME), RedundantBracketsTest) {
                                 << "Test iteration: " << cnt << std::endl;
         } catch (ExpressionException &e) {
             EXPECT_NE(std::string(e.what()).find("redundant"), std::string::npos)
-                                << "Wrong error happened in algorithm" << std::endl
+                                << e.what() << std::endl
                                 << "Test iteration: " << cnt << std::endl;
         } catch (std::exception &e) {
             EXPECT_TRUE(false)
-                                << "Wrong exception was caught" << std::endl
+                                << e.what() << std::endl
                                 << "Test iteration: " << cnt << std::endl;
         }
         ++cnt;

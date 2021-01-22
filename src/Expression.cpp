@@ -72,9 +72,9 @@ void Expression::parseExpression() {
             case '+':
             case '-':
                 if (lastOperation == Operations::AddOperator) {
-                    throw ExpressionException("Given two operators in sequence.");
+                    stringParsingExceptionThrow("Given two operators in sequence.", buf, charPositionInBuf);
                 } else if (lastOperation == Operations::OpenBracket) {
-                    throw ExpressionException("Operator goes after opening bracket.");
+                    stringParsingExceptionThrow("Operator goes after opening bracket.", buf, charPositionInBuf);
                 }
                 _operators->push_back(c);
                 lastOperation = Operations::AddOperator;
@@ -83,9 +83,9 @@ void Expression::parseExpression() {
             case '/':
             case '*':
                 if (lastOperation == Operations::AddOperator) {
-                    throw ExpressionException("Given two operators in sequence.");
+                    stringParsingExceptionThrow("Given two operators in sequence.", buf, charPositionInBuf);
                 } else if (lastOperation == Operations::OpenBracket) {
-                    throw ExpressionException("Operator goes after opening bracket.");
+                    stringParsingExceptionThrow("Operator goes after opening bracket.", buf, charPositionInBuf);
                 }
                 _operators->push_back(c);
                 lastOperation = Operations::AddOperator;
@@ -94,11 +94,13 @@ void Expression::parseExpression() {
             case '(':
                 // TODO Multiply may be added later
                 if (lastOperation == Operations::AddNumber) {
-                    throw ExpressionException(
-                            "Opening bracket after number (operator should be inserted explicitly).");
+                    stringParsingExceptionThrow(
+                            "Opening bracket after number (operator should be inserted explicitly).", buf,
+                            charPositionInBuf);
                 } else if (lastOperation == Operations::CloseBracket) {
-                    throw ExpressionException(
-                            "Opening bracket after closed bracket (operator should be inserted explicitly).");
+                    stringParsingExceptionThrow(
+                            "Opening bracket after closed bracket (operator should be inserted explicitly).", buf,
+                            charPositionInBuf);
                 }
                 _numbers->push_back(NAN);
                 _operators->push_back(c);
@@ -108,25 +110,25 @@ void Expression::parseExpression() {
                 break;
             case ')':
                 if (lastOperation == Operations::OpenBracket) {
-                    throw ExpressionException("Closing bracket goes after opening bracket.");
+                    stringParsingExceptionThrow("Closing bracket goes after opening bracket.", buf, charPositionInBuf);
                 } else if (lastOperation == Operations::AddOperator) {
-                    throw ExpressionException("Closing bracket goes after operator.");
+                    stringParsingExceptionThrow("Closing bracket goes after operator.", buf, charPositionInBuf);
                 }
                 _operators->push_back(c);
                 _numbers->push_back(NAN);
                 lastOperation = Operations::CloseBracket;
                 priority -= 1000;
                 if (priority < 0) {
-                    throw ExpressionException("Got redundant closing bracket.");
+                    stringParsingExceptionThrow("Got redundant closing bracket.", buf, charPositionInBuf);
                 }
                 operationPosition++;
                 break;
             default:
                 if ((c >= '0' && c <= '9')) {
                     if (lastOperation == Operations::AddNumber) {
-                        throw ExpressionException("Given number after another number.");
+                        stringParsingExceptionThrow("Given number after another number.", buf, charPositionInBuf);
                     } else if (lastOperation == Operations::CloseBracket) {
-                        throw ExpressionException("Given number after closing bracket.");
+                        stringParsingExceptionThrow("Given number after closing bracket.", buf, charPositionInBuf);
                     }
                     iss.seekg(charPositionInBuf);
                     iss >> number;
@@ -135,7 +137,7 @@ void Expression::parseExpression() {
                     _numbers->push_back(number);
                     lastOperation = Operations::AddNumber;
                 } else {
-                    throw ExpressionException("Invalid character is given.");
+                    stringParsingExceptionThrow("Invalid character is given.", buf, charPositionInBuf);
                 }
                 break;
         }
