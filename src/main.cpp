@@ -4,10 +4,6 @@
 
 #include "Expression.h"
 
-/// 1. Test base operations
-/// 2. Test simple expressions (with 3-4 expressions)
-
-// 1 + 5 * (421 - 905) / ((390.87 + 60.8) * (9333 - 180.5))
 int main(int argc, char **argv) {
     std::string buf;
 
