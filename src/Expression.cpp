@@ -1,6 +1,5 @@
 #include "Expression.h"
 #include <vector>
-#include <iterator>
 #include <algorithm>
 #include <cmath>
 #include <map>

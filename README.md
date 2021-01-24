@@ -5,8 +5,6 @@
 Current state of CMakeLists only lets to build static library and add it to project with google-tests
 
 #TODO:
-- Refactor ExpressionException
-- Make tests for division by 0(zero)
 - Add converter from one notation to other
 - Add trigonometry
 - Add logarithms

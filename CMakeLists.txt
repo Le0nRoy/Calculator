@@ -12,7 +12,6 @@ message("Configuring ${MAIN_LIB_NAME}...")
 
 # Compile block
 set( SRC
-        src/Utils.cpp
         src/Expression.cpp
         src/BinaryOperation.cpp
         src/Number.cpp

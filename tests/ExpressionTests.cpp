@@ -122,6 +122,26 @@ TEST(PPCAT(Brackets, SUITE_NAME), RedundantBracketsTest) {
     }
 }
 
+TEST(PPCAT(ZeroDivision, SUITE_NAME), ZeroDivisionTest) {
+    std::vector<std::string> testData = {
+            "1 / 0",
+            "373 / (73 - 73)"
+    };
+    size_t cnt = 0;
+    std::shared_ptr<Expression> expression;
+
+    for (auto data : testData) {
+        try {
+            expression = std::make_shared<Expression>(data);
+            EXPECT_THROW(expression->getResult(), BinaryOperationException);
+        } catch (std::exception &e) {
+            std::cout << e.what() << std::endl
+            << "Test iteration: " << cnt << std::endl;
+        }
+        ++cnt;
+    }
+}
+
 TEST(PPCAT(Comparator, SUITE_NAME), PriorityComparatorTest) {
     struct TestData {
         enum class Relations {
