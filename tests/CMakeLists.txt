@@ -16,6 +16,7 @@ set(TEST_SRC
         main_test.cpp
         BaseOperationsTests.cpp
         ExpressionTests.cpp
+        NumberSystemConverterTests.cpp
         )
 
 add_executable(${TEST_EXECUTABLE_NAME}

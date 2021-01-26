@@ -15,6 +15,7 @@ set( SRC
         src/Expression.cpp
         src/BinaryOperation.cpp
         src/Number.cpp
+        src/NumberSystemConverter.cpp
         )
 add_library(${MAIN_LIB_NAME}_lib
         ${SRC}
