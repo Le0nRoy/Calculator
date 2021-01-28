@@ -8,15 +8,25 @@
 #include <string>
 #include <utility>
 #include <cmath>
+#include <sstream>
 
+struct NumberSystemConverterException : std::exception {
+    explicit NumberSystemConverterException(std::string message) :
+            _message(std::move(message)) {}
+
+    const char *what() const noexcept override {
+        return _message.data();
+    }
+
+private:
+    std::string _message;
+};
+
+// TODO allow changing value (create same as constructors method)
+// 198 D10 D16
+// 13a1 D16 D2
 struct NumberSystemConverter {
-    explicit NumberSystemConverter(std::string str) :
-            _valueStr(std::move(str)),
-            _value(std::nan("")),
-            _numSysNew(0),
-            _numSysOrig(0) {
-        // TODO parse string
-    };
+    explicit NumberSystemConverter(const std::string &str);
 
     NumberSystemConverter(double val, size_t original_number_system, size_t new_number_system) :
             _value(val),
@@ -33,18 +43,28 @@ struct NumberSystemConverter {
         return _valueStr;
     }
 
+    size_t getNumSysOrig() const;
+
+    size_t getNumSysNew() const;
+
     const std::string &getConvertedValue() const {
         return _valueStrNew;
     }
 
     NumberSystemConverter operator+(const NumberSystemConverter &right);
+
     NumberSystemConverter operator-(const NumberSystemConverter &right);
+
     NumberSystemConverter operator*(const NumberSystemConverter &right);
+
     NumberSystemConverter operator/(const NumberSystemConverter &right);
 
     NumberSystemConverter operator++();
+
     NumberSystemConverter operator++(int);
+
     NumberSystemConverter operator--();
+
     NumberSystemConverter operator--(int);
 
     bool operator==(const NumberSystemConverter &rhs) const;
