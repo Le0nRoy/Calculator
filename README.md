@@ -6,6 +6,8 @@ Current state of CMakeLists only lets to build static library and add it to proj
 
 #TODO:
 - Add converter from one notation to other
+- Add test data in separate files (not compiled into tests)
+- Add config file for project (set accuracy for converter)
 - Add trigonometry
 - Add logarithms
 - Add Qt-based (or some other) frontend

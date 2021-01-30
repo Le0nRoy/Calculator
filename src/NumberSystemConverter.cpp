@@ -4,89 +4,68 @@
 
 #include "NumberSystemConverter.h"
 
-NumberSystemConverter::NumberSystemConverter(const std::string &str) :
-        _value(std::nan("")) {
-    // TODO parse string
-    std::istringstream is(str);
-    std::string numSysStr;
-    std::string numSysNewStr;
-    is >> _valueStr >> numSysStr >> numSysNewStr;
-    // FIXME check if end of is
-    // FIXME check errors of is
-    // FIXME here should be exception if smth wrong
+#include <list>
+#include <algorithm>
+#include <sstream>
 
-    auto parseNumSys = [&is](const std::string& sysStr) -> size_t {
-        size_t ret = 0;
-        if (sysStr[0] != 'D' && sysStr[0] != 'd') {
-            throw std::exception();
+void NumberSystemConverter::parseString(const std::string &str) {
+    // TODO parse string and convert to D10
+    // check if only allowed symbols are present
+}
+
+//  firstly translate to D10, than translate to D2
+std::string NumberSystemConverter::convert(size_t numberSystem) {
+    if (numberSystem == 10) {
+        return std::to_string(_valueD10);
+    }
+
+    signed char sign = _valueD10 < 0 ? -1 : 1;
+    char c;
+    size_t fracAccuracy = 10;
+    // Integer part of value
+    auto valInt = (long long) std::abs(_valueD10);
+    // Fractional part of value
+    double valFrac = std::abs(_valueD10) - valInt;
+    std::string res;
+    std::ostringstream ss(res);
+    std::list<char> resChars;
+
+    auto getCharNum = [](char val) -> char {
+        if (val < 10) {
+            return (char) ('0' + val);
+        } else {
+            return (char) ('A' + (val - 10));
         }
-        // FIXME reset flags?
-        is.str(sysStr);
-        is.seekg(1);
-        is >> ret;
-        // FIXME check that no errors happened and that end of string is reached
-        return ret;
     };
 
-    _numSysOrig = parseNumSys(numSysStr);
-    _numSysNew = parseNumSys(numSysNewStr);
+    if (numberSystem < 2 || numberSystem > 36) {
+        throw NumberSystemConverterException("Number system should be bigger 1 and smaller 36");
+    }
+    if (valInt < 10 && valFrac == 0 && numberSystem > 10) {
+        return std::to_string(valInt);
+    }
+    if (valInt < numberSystem && valFrac == 0) {
+        return std::string(1, getCharNum(valInt));
+    }
+
+    while (valInt > 0) {
+        c = getCharNum(static_cast<char>(valInt % numberSystem));
+        valInt /= numberSystem;
+        resChars.push_front(c);
+    }
+    if (valFrac != 0) {
+        resChars.push_back('.');
+        while (--fracAccuracy != 0 || valFrac != 0) {
+            valFrac *= numberSystem;
+            c = getCharNum(static_cast<char>(valFrac));
+            resChars.push_back(c);
+        }
+    }
+
+
+    for (auto charVal : resChars) {
+        ss << charVal;
+    }
+    return res;
 }
 
-void NumberSystemConverter::convert() {
-    // get value from _value
-    // convert it
-    // write it to _valueStrNew
-}
-
-bool NumberSystemConverter::operator==(const NumberSystemConverter &rhs) const {
-    // FIXME
-    return _numSysOrig == rhs._numSysOrig &&
-           _numSysNew == rhs._numSysNew &&
-           _value == rhs._value &&
-           _valueStrNew == rhs._valueStrNew;
-}
-
-bool NumberSystemConverter::operator!=(const NumberSystemConverter &rhs) const {
-    return !(rhs == *this);
-}
-
-bool NumberSystemConverter::operator<(const NumberSystemConverter &rhs) const {
-    // FIXME
-    if (_numSysOrig < rhs._numSysOrig)
-        return true;
-    if (rhs._numSysOrig < _numSysOrig)
-        return false;
-    if (_numSysNew < rhs._numSysNew)
-        return true;
-    if (rhs._numSysNew < _numSysNew)
-        return false;
-    if (_value < rhs._value)
-        return true;
-    if (rhs._value < _value)
-        return false;
-    if (_valueStr < rhs._valueStr)
-        return true;
-    if (rhs._valueStr < _valueStr)
-        return false;
-    return _valueStrNew < rhs._valueStrNew;
-}
-
-bool NumberSystemConverter::operator>(const NumberSystemConverter &rhs) const {
-    return rhs < *this;
-}
-
-bool NumberSystemConverter::operator<=(const NumberSystemConverter &rhs) const {
-    return !(rhs < *this);
-}
-
-bool NumberSystemConverter::operator>=(const NumberSystemConverter &rhs) const {
-    return !(*this < rhs);
-}
-
-size_t NumberSystemConverter::getNumSysOrig() const {
-    return _numSysOrig;
-}
-
-size_t NumberSystemConverter::getNumSysNew() const {
-    return _numSysNew;
-}

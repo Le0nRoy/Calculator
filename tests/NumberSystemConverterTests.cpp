@@ -13,6 +13,14 @@
 #define SUITE_NAME_ARITHMETIC_OPERATIONS PPCAT(SUITE_NAME, ArithmeticOperations)
 #define SUITE_NAME_RELATIONAL_OPERATIONS PPCAT(SUITE_NAME, RelationalOperations)
 
+/**
+ * Get number in any number system (e.g. "16a1 D16")
+ * store it in D2 system in std::vector<bool> and std::string
+ * return string with that number in needed number system
+ * if D10 - return double
+ * arithmetic and relational operations
+ */
+
 class SUITE_NAME : ::testing::Test {
 protected:
     virtual void prepareTestData() = 0;
@@ -25,20 +33,23 @@ protected:
 
 class SUITE_NAME_STR_PARSE : SUITE_NAME {
 protected:
+    /*
+     * testString
+     * value in D2
+     * value in D10
+     */
     class TestDTO {
         bool negativeTest;
         std::string testStr;
-        std::string val;
-        size_t sysOrig;
-        size_t sysNew;
+        std::string valD2;
+        std::string valD10;
 
     public:
-        TestDTO(bool negativeTest, std::string testStr, std::string val, size_t sysOrig, size_t sysNew)
+        TestDTO(bool negativeTest, std::string testStr, std::string valD2, std::string valD10)
                 : negativeTest(negativeTest),
                   testStr(std::move(testStr)),
-                  val(std::move(val)),
-                  sysOrig(sysOrig),
-                  sysNew(sysNew) {}
+                  valD2(std::move(valD2)),
+                  valD10(std::move(valD10)) {}
 
         bool isNegativeTest() const {
             return negativeTest;
@@ -48,40 +59,25 @@ protected:
             return testStr;
         }
 
-        const std::string &getVal() const {
-            return val;
+        const std::string &getValD2() const {
+            return valD2;
         }
 
-        size_t getSysOrig() const {
-            return sysOrig;
-        }
-
-        size_t getSysNew() const {
-            return sysNew;
+        const std::string &getValD10() const {
+            return valD10;
         }
     };
 
     void prepareTestData() {
         testData = {
-                TestDTO(false, "198 D10 D16", "198", 10, 16),
-                TestDTO(false, "13a1 d16 d2", "13a1", 16, 2)
+                TestDTO(false, "198 D10", "11000110", std::to_string(198)),
+                TestDTO(false, "13a1 d16", "1001110100001", std::to_string(5025))
         };
     }
 
     std::vector<TestDTO> testData;
 };
 
-/*
- * TODO
- *  constructor from string test
- *  string parsing test
- *  conversion test
- *  operations tests
- *
- *  at least 3 different DTOs
-*/
-
-// TODO same test for string setter
 TEST_F(SUITE_NAME_STR_PARSE, ConstructorFromStringTest) {
     size_t cnt;
     std::shared_ptr<NumberSystemConverter> converter;
@@ -89,9 +85,35 @@ TEST_F(SUITE_NAME_STR_PARSE, ConstructorFromStringTest) {
     for (const auto &data : testData) {
         try {
             converter = std::make_shared<NumberSystemConverter>(data.getTestStr());
-            EXPECT_STREQ(data.getVal().data(), converter->getValueStr().data());
-            EXPECT_EQ(data.getSysOrig(), converter->getNumSysOrig());
-            EXPECT_EQ(data.getSysNew(), converter->getNumSysNew());
+            // TODO check D2 value
+            // TODO check D10 value
+        } catch (std::exception &e) {
+            if (data.isNegativeTest()) {
+                EXPECT_THROW(throw e, NumberSystemConverterException)
+                                    << "Got unexpected exception." << std::endl
+                                    << e.what() << std::endl
+                                    << "Test iteration: " << cnt << std::endl;
+            } else {
+                EXPECT_NO_THROW(throw e)
+                                    << "Got unexpected exception." << std::endl
+                                    << e.what() << std::endl
+                                    << "Test iteration: " << cnt << std::endl;
+            }
+        }
+        ++cnt;
+    }
+}
+
+// FIXME this test and test above make in one function which gets pointer to function and sends there test string
+TEST_F(SUITE_NAME_STR_PARSE, ParseStringTest) {
+    size_t cnt;
+    NumberSystemConverter converter;
+
+    for (const auto &data : testData) {
+        try {
+            converter.parseString(data.getTestStr());
+            // TODO check D2 value
+            // TODO check D10 value
         } catch (std::exception &e) {
             if (data.isNegativeTest()) {
                 EXPECT_THROW(throw e, NumberSystemConverterException)
@@ -112,15 +134,21 @@ TEST_F(SUITE_NAME_STR_PARSE, ConstructorFromStringTest) {
 class SUITE_NAME_CONVERSION : SUITE_NAME {
     class TestDTO {
         std::string testString;
+        size_t numberSystem;
         std::string expectedValue;
 
     public:
-        TestDTO(std::string testString, std::string expectedValue) :
+        TestDTO(std::string testString, size_t numberSystem, std::string expectedValue) :
                 testString(std::move(testString)),
+                numberSystem(numberSystem),
                 expectedValue(std::move(expectedValue)) {}
 
         const std::string &getTestString() const {
             return testString;
+        }
+
+        size_t getNumberSystem() const {
+            return numberSystem;
         }
 
         const std::string &getExpectedValue() const {
@@ -130,7 +158,7 @@ class SUITE_NAME_CONVERSION : SUITE_NAME {
 
     void prepareTestData() {
         testData = {
-                TestDTO("10 D10 D16", "A")
+                TestDTO("10 D10",16 , "A")
         };
     }
 
@@ -144,9 +172,9 @@ protected:
 
 TEST_F(SUITE_NAME_CONVERSION, ConversionTest) {}
 
-// TODO same but with bool result for relational operations
 class SUITE_NAME_ARITHMETIC_OPERATIONS : SUITE_NAME {
-protected:  enum class Operations;
+protected:
+    enum class Operations;
 private:
     class TestDTO {
         std::string left;
@@ -180,7 +208,8 @@ TEST_F(SUITE_NAME_ARITHMETIC_OPERATIONS, IncrementTest) {}
 TEST_F(SUITE_NAME_ARITHMETIC_OPERATIONS, DecrementTest) {}
 
 class SUITE_NAME_RELATIONAL_OPERATIONS : SUITE_NAME {
-protected:  enum class Operations;
+protected:
+    enum class Operations;
 private:
     class TestDTO {
         std::string left;
@@ -206,9 +235,9 @@ protected:
     };
 };
 
-TEST_F(SUITE_NAME_RELATIONAL_OPERATIONS, BiggerTest){}
-TEST_F(SUITE_NAME_RELATIONAL_OPERATIONS, BiggerEqTest){}
-TEST_F(SUITE_NAME_RELATIONAL_OPERATIONS, SmallerTest){}
-TEST_F(SUITE_NAME_RELATIONAL_OPERATIONS, SmallerEqTest){}
-TEST_F(SUITE_NAME_RELATIONAL_OPERATIONS, EqTest){}
-TEST_F(SUITE_NAME_RELATIONAL_OPERATIONS, NotEqTest){}
+TEST_F(SUITE_NAME_RELATIONAL_OPERATIONS, BiggerTest) {}
+TEST_F(SUITE_NAME_RELATIONAL_OPERATIONS, BiggerEqTest) {}
+TEST_F(SUITE_NAME_RELATIONAL_OPERATIONS, SmallerTest) {}
+TEST_F(SUITE_NAME_RELATIONAL_OPERATIONS, SmallerEqTest) {}
+TEST_F(SUITE_NAME_RELATIONAL_OPERATIONS, EqTest) {}
+TEST_F(SUITE_NAME_RELATIONAL_OPERATIONS, NotEqTest) {}

@@ -8,7 +8,6 @@
 #include <string>
 #include <utility>
 #include <cmath>
-#include <sstream>
 
 struct NumberSystemConverterException : std::exception {
     explicit NumberSystemConverterException(std::string message) :
@@ -26,65 +25,39 @@ private:
 // 198 D10 D16
 // 13a1 D16 D2
 struct NumberSystemConverter {
-    explicit NumberSystemConverter(const std::string &str);
+    NumberSystemConverter() = default;
 
-    NumberSystemConverter(double val, size_t original_number_system, size_t new_number_system) :
-            _value(val),
-            _numSysOrig(original_number_system),
-            _numSysNew(new_number_system) {};
-
-    void convert();
-
-    double getValue() const {
-        return _value;
+    explicit NumberSystemConverter(const std::string &str) {
+        parseString(str);
     }
+    explicit NumberSystemConverter(double val) :
+            _valueD10(val) {};
 
-    const std::string &getValueStr() const {
-        return _valueStr;
-    }
+    void parseString(const std::string& str);
 
-    size_t getNumSysOrig() const;
+    std::string convert(size_t numberSystem);
 
-    size_t getNumSysNew() const;
-
-    const std::string &getConvertedValue() const {
-        return _valueStrNew;
+    double getValueD10() const {
+        return _valueD10;
     }
 
     NumberSystemConverter operator+(const NumberSystemConverter &right);
-
     NumberSystemConverter operator-(const NumberSystemConverter &right);
-
     NumberSystemConverter operator*(const NumberSystemConverter &right);
-
     NumberSystemConverter operator/(const NumberSystemConverter &right);
-
     NumberSystemConverter operator++();
-
     NumberSystemConverter operator++(int);
-
     NumberSystemConverter operator--();
-
     NumberSystemConverter operator--(int);
-
     bool operator==(const NumberSystemConverter &rhs) const;
-
     bool operator!=(const NumberSystemConverter &rhs) const;
-
     bool operator<(const NumberSystemConverter &rhs) const;
-
     bool operator>(const NumberSystemConverter &rhs) const;
-
     bool operator<=(const NumberSystemConverter &rhs) const;
-
     bool operator>=(const NumberSystemConverter &rhs) const;
 
 private:
-    size_t _numSysOrig;
-    size_t _numSysNew;
-    double _value;
-    std::string _valueStr;
-    std::string _valueStrNew;
+    double _valueD10;
 };
 
 
