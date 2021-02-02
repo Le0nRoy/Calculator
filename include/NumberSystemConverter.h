@@ -21,21 +21,21 @@ private:
     std::string _message;
 };
 
-// TODO allow changing value (create same as constructors method)
-// 198 D10 D16
-// 13a1 D16 D2
+// 198 D10
+// 13a1 D16
 struct NumberSystemConverter {
     NumberSystemConverter() = default;
 
-    explicit NumberSystemConverter(const std::string &str) {
+    explicit NumberSystemConverter(const std::string &str)
+    : _valueD10(std::nan("")) {
         parseString(str);
     }
-    explicit NumberSystemConverter(double val) :
-            _valueD10(val) {};
+    explicit NumberSystemConverter(double valD10) :
+            _valueD10(valD10) {};
 
     void parseString(const std::string& str);
 
-    std::string convert(size_t numberSystem);
+    std::string convert(size_t numberSystem) const;
 
     double getValueD10() const {
         return _valueD10;
