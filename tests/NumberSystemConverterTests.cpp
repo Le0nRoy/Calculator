@@ -66,13 +66,28 @@ protected:
     void prepareTestData() {
         testData = {
                 TestDTO(false, "198 D10", 198),
-                TestDTO(false, "13a1 d16", 5025)
+                TestDTO(false, "600 D7", 294),
+                TestDTO(false, "adab D16", 44459),
+                TestDTO(false, "12345 D8", 5349),
+                TestDTO(false, "zaz D36", 45755),
+                TestDTO(false, "1011010101 D2", 725),
+                TestDTO(false, "131 D4", 29),
+                TestDTO(false, "13a1 d16", 5025),
+                // FIXME no check in algorithm ('g' is D17)
+                // FIXME test framework doesn't handle absence of exception
+                TestDTO(true, "13g1 d16", 0)
         };
     }
 
     std::vector<TestDTO> testData;
 };
 
+/**
+ * a b c d e f g
+ * h i j k l m n
+ * o p q r s t u
+ * v w x y z
+ */
 TEST_F(SUITE_NAME_STR_PARSE, ConstructorFromStringTest) {
     std::shared_ptr<NumberSystemConverter> converter;
 
@@ -85,12 +100,12 @@ TEST_F(SUITE_NAME_STR_PARSE, ConstructorFromStringTest) {
             if (data.isNegativeTest()) {
                 EXPECT_THROW(throw e, NumberSystemConverterException)
                                     << "Got unexpected exception." << std::endl
-                                    << e.what() << std::endl
+                                    << "---" << e.what() << std::endl
                                     << "Test iteration: " << testIteration << std::endl;
             } else {
                 EXPECT_NO_THROW(throw e)
                                     << "Got unexpected exception." << std::endl
-                                    << e.what() << std::endl
+                                    << "---" << e.what() << std::endl
                                     << "Test iteration: " << testIteration << std::endl;
             }
         }

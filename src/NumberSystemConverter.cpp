@@ -14,9 +14,11 @@ void NumberSystemConverter::parseString(const std::string &str) {
     std::string value;
     std::string numSystemStr;
     std::stringstream is(str);
+    is.exceptions(std::istringstream::failbit | std::istringstream::badbit);
 
     is >> value >> numSystemStr;
 
+    // FIXME this one is unneeded?
     if (is.fail()) {
         throw NumberSystemConverterException("Got error while string parsing");
     }
@@ -33,21 +35,26 @@ void NumberSystemConverter::parseString(const std::string &str) {
     }
 
     if (numSystemStr[0] != 'D' && numSystemStr[0] != 'd') {
-        throw NumberSystemConverterException("Number system should be indicated after number with preceding 'D' or 'd' character (e.g. \"D10\")");
+        throw NumberSystemConverterException(
+                "Number system should be indicated after number with preceding 'D' or 'd' character (e.g. \"D10\")");
     }
     is.str(numSystemStr);
     is.seekg(1);
     is >> numSys;
+    // FIXME if (is.fail() || is.bad()) then will be thrown exception
     if (is.fail() || !is.eof()) {
         throw NumberSystemConverterException("Got errors while parsing number system");
     }
 
     if (numSys == 10) {
         is.str(value);
+        is.clear();
         is >> _valueD10;
+        // FIXME if (is.fail() || is.bad()) then will be thrown exception
         if (is.fail() || !is.eof()) {
             throw NumberSystemConverterException("Got errors while parsing value");
         }
+        return;
     }
 
     // allowed chars:
@@ -55,6 +62,7 @@ void NumberSystemConverter::parseString(const std::string &str) {
     // 'A' - 'Z'
     // 'a' - 'z'
     cnt = 0;
+    _valueD10 = 0;
     for (auto c : value) {
         if (numSys < 10) {
             if (c >= '0' + numSys || c < '0') {
